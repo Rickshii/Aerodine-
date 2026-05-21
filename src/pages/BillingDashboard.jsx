@@ -28,10 +28,7 @@ export default function BillingDashboard() {
   const [customReason, setCustomReason] = useState('');
 
   // Refunded invoice ID state persistent cache
-  const [refundedBillIds, setRefundedBillIds] = useState(() => {
-    const saved = localStorage.getItem('rms_refunded_bills');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [refundedBillIds, setRefundedBillIds] = useState([]);
 
   // History search & filter states
   const [historySearch, setHistorySearch] = useState('');
@@ -153,7 +150,6 @@ export default function BillingDashboard() {
     }
     const nextRefunded = [...refundedBillIds, bill.orderNo];
     setRefundedBillIds(nextRefunded);
-    localStorage.setItem('rms_refunded_bills', JSON.stringify(nextRefunded));
     
     toast.success('Refund Initiated Successfully', { icon: '💳' });
     toast.success(`$${bill.total.toFixed(2)} credited back to customer account`);

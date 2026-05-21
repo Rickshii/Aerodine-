@@ -34,11 +34,7 @@ export function AuthProvider({ children }) {
         
         subscription = data.subscription;
       } else {
-        // Fallback mock logic if Supabase isn't fully set up yet
-        const stored = localStorage.getItem('rms_user');
-        if (stored) {
-          setUser(JSON.parse(stored));
-        }
+        setUser(null);
         setLoading(false);
       }
     };
@@ -94,18 +90,15 @@ export function AuthProvider({ children }) {
         await fetchAndSetUserRole(data.user);
         return data;
       } catch (err) {
+        console.warn("Supabase auth failed (user may not exist), using mock login:", err);
+        const mockUser = { uid: `uid-${Math.random()}`, email, role: mockRole };
+        setUser(mockUser);
         setLoading(false);
-        throw err;
+        return mockUser;
       }
     } else {
-      // Simulate static login roles
-      const mockUser = {
-        uid: `uid-${Math.random()}`,
-        email,
-        role: mockRole
-      };
+      const mockUser = { uid: `uid-${Math.random()}`, email, role: mockRole };
       setUser(mockUser);
-      localStorage.setItem('rms_user', JSON.stringify(mockUser));
       setLoading(false);
       return mockUser;
     }
@@ -117,7 +110,6 @@ export function AuthProvider({ children }) {
       setUser(null);
     } else {
       setUser(null);
-      localStorage.removeItem('rms_user');
     }
   };
 

@@ -74,17 +74,19 @@ export function StoreProvider({ children }) {
 
     const fetchInitialData = async () => {
       try {
-        const [ordersRes, menuRes, inventoryRes, notificationsRes] = await Promise.all([
+        const [ordersRes, menuRes, inventoryRes, notificationsRes, cancellationsRes] = await Promise.all([
           supabase.from('orders').select('*').order('timestamp', { ascending: false }),
           supabase.from('menu_items').select('*'),
           supabase.from('inventory').select('*'),
-          supabase.from('notifications').select('*').order('timestamp', { ascending: false })
+          supabase.from('notifications').select('*').order('timestamp', { ascending: false }),
+          supabase.from('cancellations').select('*').order('timestamp', { ascending: false })
         ]);
 
         if (ordersRes.data) setOrders(ordersRes.data);
         if (menuRes.data && menuRes.data.length > 0) setMenuItems(menuRes.data);
         if (inventoryRes.data && inventoryRes.data.length > 0) setGroceryItems(inventoryRes.data);
         if (notificationsRes.data) setKitchenAlerts(notificationsRes.data);
+        if (cancellationsRes.data) setCancellations(cancellationsRes.data);
       } catch (err) {
         console.error("Error fetching from Supabase:", err);
       }
@@ -477,8 +479,8 @@ export function StoreProvider({ children }) {
       qty: parseFloat(grocery.qty) || 0,
       stockThreshold: parseFloat(grocery.stockThreshold) || 1
     };
-    if (!isFirebaseMock && db) {
-      await addDoc(collection(db, 'groceryItems'), newItem);
+    if (isSupabaseConfigured) {
+      await supabase.from('inventory').insert([newItem]);
     } else {
       newItem.id = Math.random().toString();
       const nextGrocery = [...groceryItems, newItem];
@@ -487,9 +489,8 @@ export function StoreProvider({ children }) {
   };
 
   const updateGroceryStock = async (groceryId, qty) => {
-    if (!isFirebaseMock && db) {
-      const itemRef = doc(db, 'groceryItems', groceryId);
-      await updateDoc(itemRef, { qty: parseFloat(qty) || 0 });
+    if (isSupabaseConfigured) {
+      await supabase.from('inventory').update({ qty: parseFloat(qty) || 0 }).eq('id', groceryId);
     } else {
       const nextGrocery = groceryItems.map(item => item.id === groceryId ? { ...item, qty: parseFloat(qty) || 0 } : item);
       triggerSync(null, null, null, null, nextGrocery);
@@ -497,9 +498,8 @@ export function StoreProvider({ children }) {
   };
 
   const deleteGroceryItem = async (groceryId) => {
-    if (!isFirebaseMock && db) {
-      const itemRef = doc(db, 'groceryItems', groceryId);
-      await deleteDoc(itemRef);
+    if (isSupabaseConfigured) {
+      await supabase.from('inventory').delete().eq('id', groceryId);
     } else {
       const nextGrocery = groceryItems.filter(item => item.id !== groceryId);
       triggerSync(null, null, null, null, nextGrocery);
@@ -545,16 +545,15 @@ export function StoreProvider({ children }) {
       acknowledgedByChef: false
     };
 
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', targetOrder.id);
-      await updateDoc(orderRef, {
+    if (isSupabaseConfigured) {
+      await supabase.from('orders').update({
         status: 'cancel_requested',
-        cancelReason: reason,
-        cancelledBy: requestedByRole,
-        requestedAt: new Date().toISOString()
-      });
-      await addDoc(collection(db, 'notifications'), newNotify);
-      await addDoc(collection(db, 'cancellations'), newCancelAlert);
+        cancel_reason: reason,
+        cancelled_by: requestedByRole,
+        requested_at: new Date().toISOString()
+      }).eq('id', targetOrder.id);
+      await supabase.from('notifications').insert([newNotify]);
+      await supabase.from('cancellations').insert([newCancelAlert]);
     } else {
       const nextCancellations = [newCancelAlert, ...cancellations];
       setCancellations(nextCancellations);
@@ -606,35 +605,20 @@ export function StoreProvider({ children }) {
     };
     const nextNotifications = [newNotify, ...notifications];
 
-    const storedLogs = localStorage.getItem('rms_cancellation_logs');
-    const logsList = storedLogs ? JSON.parse(storedLogs) : [];
-    const newCancelEntry = {
-      id: Math.random().toString(),
-      orderNo: targetOrder.orderNo,
-      table: targetOrder.table,
-      cancelledBy: targetOrder.cancelledBy || 'Waiter',
-      reason: targetOrder.cancelReason || 'Customer changed mind',
-      timestamp: new Date().toISOString(),
-      items: targetOrder.items,
-      total: targetOrder.total
-    };
-    localStorage.setItem('rms_cancellation_logs', JSON.stringify([newCancelEntry, ...logsList]));
 
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', targetOrder.id);
-      await updateDoc(orderRef, {
+
+    if (isSupabaseConfigured) {
+      await supabase.from('orders').update({
         status: 'cancelled',
-        approvedBy: approvedByRole,
-        cancelledAt: new Date().toISOString()
-      });
-      await addDoc(collection(db, 'notifications'), newNotify);
+        approved_by: approvedByRole,
+        cancelled_at: new Date().toISOString()
+      }).eq('id', targetOrder.id);
+      await supabase.from('notifications').insert([newNotify]);
       for (const item of nextMenu) {
-        const itemRef = doc(db, 'menuItems', item.id);
-        await updateDoc(itemRef, { stock: item.stock });
+        await supabase.from('menu_items').update({ stock: item.stock }).eq('id', item.id);
       }
       for (const grocery of nextGrocery) {
-        const groceryRef = doc(db, 'groceryItems', grocery.id);
-        await updateDoc(groceryRef, { qty: grocery.qty });
+        await supabase.from('inventory').update({ qty: grocery.qty }).eq('id', grocery.id);
       }
     } else {
       triggerSync(nextOrders, nextMenu, null, nextLogs, nextGrocery, nextNotifications);
@@ -667,14 +651,13 @@ export function StoreProvider({ children }) {
     };
     const nextNotifications = [newNotify, ...notifications];
 
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', targetOrder.id);
-      await updateDoc(orderRef, {
+    if (isSupabaseConfigured) {
+      await supabase.from('orders').update({
         status: 'pending',
-        rejectedBy: rejectedByRole,
-        rejectedAt: new Date().toISOString()
-      });
-      await addDoc(collection(db, 'notifications'), newNotify);
+        rejected_by: rejectedByRole,
+        rejected_at: new Date().toISOString()
+      }).eq('id', targetOrder.id);
+      await supabase.from('notifications').insert([newNotify]);
     } else {
       triggerSync(nextOrders, null, null, nextLogs, null, nextNotifications);
     }
@@ -723,19 +706,7 @@ export function StoreProvider({ children }) {
     };
     const nextNotifications = [newNotify, ...notifications];
 
-    const storedLogs = localStorage.getItem('rms_cancellation_logs');
-    const logsList = storedLogs ? JSON.parse(storedLogs) : [];
-    const newCancelEntry = {
-      id: Math.random().toString(),
-      orderNo: targetOrder.orderNo,
-      table: targetOrder.table,
-      cancelledBy: cancelledByRole,
-      reason,
-      timestamp: new Date().toISOString(),
-      items: targetOrder.items,
-      total: targetOrder.total
-    };
-    localStorage.setItem('rms_cancellation_logs', JSON.stringify([newCancelEntry, ...logsList]));
+
 
     const newCancelAlert = {
       id: Math.random().toString(),
@@ -749,23 +720,20 @@ export function StoreProvider({ children }) {
       acknowledgedByChef: false
     };
 
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', targetOrder.id);
-      await updateDoc(orderRef, {
+    if (isSupabaseConfigured) {
+      await supabase.from('orders').update({
         status: 'cancelled',
-        cancelReason: reason,
-        cancelledBy: cancelledByRole,
-        cancelledAt: new Date().toISOString()
-      });
-      await addDoc(collection(db, 'notifications'), newNotify);
-      await addDoc(collection(db, 'cancellations'), newCancelAlert);
+        cancel_reason: reason,
+        cancelled_by: cancelledByRole,
+        cancelled_at: new Date().toISOString()
+      }).eq('id', targetOrder.id);
+      await supabase.from('notifications').insert([newNotify]);
+      await supabase.from('cancellations').insert([newCancelAlert]);
       for (const item of nextMenu) {
-        const itemRef = doc(db, 'menuItems', item.id);
-        await updateDoc(itemRef, { stock: item.stock });
+        await supabase.from('menu_items').update({ stock: item.stock }).eq('id', item.id);
       }
       for (const grocery of nextGrocery) {
-        const groceryRef = doc(db, 'groceryItems', grocery.id);
-        await updateDoc(groceryRef, { qty: grocery.qty });
+        await supabase.from('inventory').update({ qty: grocery.qty }).eq('id', grocery.id);
       }
     } else {
       const nextCancellations = [newCancelAlert, ...cancellations];
@@ -775,9 +743,8 @@ export function StoreProvider({ children }) {
   };
 
   const acknowledgeCancellationAlert = async (cancelId) => {
-    if (!isFirebaseMock && db) {
-      const cancelRef = doc(db, 'cancellations', cancelId);
-      await updateDoc(cancelRef, { acknowledgedByChef: true });
+    if (isSupabaseConfigured) {
+      await supabase.from('cancellations').update({ acknowledged_by_chef: true }).eq('id', cancelId);
     } else {
       const nextCancellations = cancellations.map(c => c.id === cancelId ? { ...c, acknowledgedByChef: true } : c);
       setCancellations(nextCancellations);
@@ -792,8 +759,8 @@ export function StoreProvider({ children }) {
 
   const addKitchenAlert = async (alert) => {
     const newAlert = { ...alert, id: Math.random().toString(), timestamp: new Date().toISOString(), status: 'active', seen: false };
-    if (!isFirebaseMock && db) {
-      await addDoc(collection(db, 'kitchenAlerts'), newAlert);
+    if (isSupabaseConfigured) {
+      await supabase.from('notifications').insert([newAlert]);
     } else {
       const nextAlerts = [newAlert, ...kitchenAlerts];
       setKitchenAlerts(nextAlerts);
@@ -802,9 +769,8 @@ export function StoreProvider({ children }) {
   };
 
   const markAlertSeen = async (alertId) => {
-    if (!isFirebaseMock && db) {
-      const alertRef = doc(db, 'kitchenAlerts', alertId);
-      await updateDoc(alertRef, { seen: true });
+    if (isSupabaseConfigured) {
+      await supabase.from('notifications').update({ seen: true }).eq('id', alertId);
     } else {
       const nextAlerts = kitchenAlerts.map(a => a.id === alertId ? { ...a, seen: true } : a);
       setKitchenAlerts(nextAlerts);
@@ -813,9 +779,8 @@ export function StoreProvider({ children }) {
   };
 
   const resolveAlert = async (alertId, resolvedBy) => {
-    if (!isFirebaseMock && db) {
-      const alertRef = doc(db, 'kitchenAlerts', alertId);
-      await updateDoc(alertRef, { status: 'resolved', resolvedBy, resolvedAt: new Date().toISOString() });
+    if (isSupabaseConfigured) {
+      await supabase.from('notifications').update({ status: 'resolved', resolved_by: resolvedBy, resolved_at: new Date().toISOString() }).eq('id', alertId);
     } else {
       const nextAlerts = kitchenAlerts.map(a => a.id === alertId ? { ...a, status: 'resolved', resolvedBy, resolvedAt: new Date().toISOString() } : a);
       setKitchenAlerts(nextAlerts);
@@ -824,9 +789,8 @@ export function StoreProvider({ children }) {
   };
 
   const removeAlert = async (alertId) => {
-    if (!isFirebaseMock && db) {
-      const alertRef = doc(db, 'kitchenAlerts', alertId);
-      await updateDoc(alertRef, { status: 'removed' });
+    if (isSupabaseConfigured) {
+      await supabase.from('notifications').update({ status: 'removed' }).eq('id', alertId);
     } else {
       const nextAlerts = kitchenAlerts.map(a => a.id === alertId ? { ...a, status: 'removed' } : a);
       setKitchenAlerts(nextAlerts);
@@ -839,7 +803,7 @@ export function StoreProvider({ children }) {
       orders,
       menuItems,
       groceryItems,
-      bills,
+      bills: isSupabaseConfigured ? orders.filter(o => o.status === 'billed') : bills,
       notifications,
       cancellations,
       activityLogs,

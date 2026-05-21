@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
-import { storage, isFirebaseMock } from '../firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { supabase, isSupabaseConfigured } from '../supabase';
 import { DollarSign, Activity, Users, Package, Plus, Trash2, Edit3, Search, Tag, Sparkles, BrainCircuit, X, RefreshCw, XCircle, AlertTriangle, AlertCircle, UploadCloud, FileImage, ImagePlus, ShoppingBag, Clock, CheckCircle, ArrowLeft, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import toast from 'react-hot-toast';
@@ -31,23 +30,7 @@ export default function ManagerDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
 
-  // Cancel tracking states
   const [cancellationLogs, setCancellationLogs] = useState([]);
-
-  useEffect(() => {
-    const loadLogs = () => {
-      const stored = localStorage.getItem('rms_cancellation_logs');
-      setCancellationLogs(stored ? JSON.parse(stored) : []);
-    };
-    loadLogs();
-
-    window.addEventListener('storage', loadLogs);
-    window.addEventListener('rms_sync', loadLogs);
-    return () => {
-      window.removeEventListener('storage', loadLogs);
-      window.removeEventListener('rms_sync', loadLogs);
-    };
-  }, []);
 
   // Device Photo Upload state parameters
   const [isUploading, setIsUploading] = useState(false);
@@ -79,30 +62,7 @@ export default function ManagerDashboard() {
       }
     };
 
-    if (!isFirebaseMock && storage) {
-      const storageRef = ref(storage, `${targetType === 'combo' ? 'combo' : 'menu'}_images/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          toast.error('Image upload failed!');
-          setIsUploading(false);
-          setUploadProgress(0);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setImageResult(downloadURL);
-          setIsUploading(false);
-          setUploadProgress(0);
-          toast.success(`${targetType === 'combo' ? 'Combo' : 'Food'} photo successfully uploaded to cloud!`, { icon: '☁️' });
-        }
-      );
-    } else {
-      // Fallback base64 upload
+    const runFallbackUpload = () => {
       const interval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -125,6 +85,36 @@ export default function ManagerDashboard() {
         }, 250);
       };
       reader.readAsDataURL(file);
+    };
+
+    if (isSupabaseConfigured) {
+      const storagePath = `${targetType === 'combo' ? 'combo' : 'menu'}_images/${Date.now()}_${file.name}`;
+      
+      const uploadProcess = async () => {
+        try {
+          const { data, error } = await supabase.storage
+            .from('rms_images')
+            .upload(storagePath, file, { upsert: true });
+
+          if (error) throw error;
+
+          const { data: publicUrlData } = supabase.storage
+            .from('rms_images')
+            .getPublicUrl(storagePath);
+
+          setImageResult(publicUrlData.publicUrl);
+          setIsUploading(false);
+          setUploadProgress(0);
+          toast.success(`${targetType === 'combo' ? 'Combo' : 'Food'} photo successfully uploaded to cloud!`, { icon: '☁️' });
+        } catch (error) {
+          console.warn('Image upload to cloud failed, falling back to local base64:', error);
+          runFallbackUpload();
+        }
+      };
+      
+      uploadProcess();
+    } else {
+      runFallbackUpload();
     }
   };
 
@@ -153,14 +143,10 @@ export default function ManagerDashboard() {
   const [newIngUnit, setNewIngUnit] = useState('g');
   const [newIngPantryId, setNewIngPantryId] = useState('');
 
-  // Specials scheduler state
-  const [specials, setSpecials] = useState(() => {
-    const saved = localStorage.getItem('rms_specials');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Wagyu Beef Steak', tag: 'Chef Choice', discount: '10% OFF', scheduledFor: 'Dinner' },
-      { id: '2', name: 'Truffle Mushroom Risotto', tag: 'Best Seller', discount: 'Chef Special', scheduledFor: 'Lunch' }
-    ];
-  });
+  const [specials, setSpecials] = useState([
+    { id: '1', name: 'Wagyu Beef Steak', tag: 'Chef Choice', discount: '10% OFF', scheduledFor: 'Dinner' },
+    { id: '2', name: 'Truffle Mushroom Risotto', tag: 'Best Seller', discount: 'Chef Special', scheduledFor: 'Lunch' }
+  ]);
   const [specialDishName, setSpecialDishName] = useState('Wagyu Beef Steak');
   const [specialTag, setSpecialTag] = useState('Chef Choice');
   const [specialPromo, setSpecialPromo] = useState('10% OFF');
@@ -804,7 +790,6 @@ export default function ManagerDashboard() {
                     };
                     const updated = [...specials, newSpecial];
                     setSpecials(updated);
-                    localStorage.setItem('rms_specials', JSON.stringify(updated));
                     window.dispatchEvent(new Event('rms_sync'));
                     toast.success(`${specialDishName} added to today's specials!`, { icon: '★' });
                   }}
@@ -859,7 +844,6 @@ export default function ManagerDashboard() {
                           onClick={() => {
                             const updated = specials.filter(s => s.id !== spec.id);
                             setSpecials(updated);
-                            localStorage.setItem('rms_specials', JSON.stringify(updated));
                             window.dispatchEvent(new Event('rms_sync'));
                             toast.success(`Removed ${spec.name} from specials`);
                           }}
