@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db, isFirebaseMock } from '../firebase';
-import { collection, onSnapshot, addDoc, updateDoc, doc, query, orderBy, deleteDoc } from 'firebase/firestore';
+import { supabase, isSupabaseConfigured } from '../supabase';
 import toast from 'react-hot-toast';
 
 const StoreContext = createContext();
@@ -69,57 +68,69 @@ export function StoreProvider({ children }) {
     { log: 'System initialized', time: '10m ago', id: '1' }
   ]);
 
-  // Real-time synchronization fallback layer
+  // Supabase Real-time synchronization layer
   useEffect(() => {
-    if (!isFirebaseMock && db) {
-      const ordersQuery = query(collection(db, 'orders'), orderBy('timestamp', 'desc'));
-      const unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
-        const loadedOrders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        setOrders(loadedOrders);
-      });
+    let activeChannel = null;
 
-      const menuUnsubscribe = onSnapshot(collection(db, 'menuItems'), (snapshot) => {
-        if (!snapshot.empty) {
-          setMenuItems(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-        } else {
-          // auto seed initial items if menu collection is empty
-          setMenuItems(initialFoods);
-        }
-      });
+    const fetchInitialData = async () => {
+      try {
+        const [ordersRes, menuRes, inventoryRes, notificationsRes] = await Promise.all([
+          supabase.from('orders').select('*').order('timestamp', { ascending: false }),
+          supabase.from('menu_items').select('*'),
+          supabase.from('inventory').select('*'),
+          supabase.from('notifications').select('*').order('timestamp', { ascending: false })
+        ]);
 
-      const billsUnsubscribe = onSnapshot(collection(db, 'bills'), (snapshot) => {
-        setBills(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
+        if (ordersRes.data) setOrders(ordersRes.data);
+        if (menuRes.data && menuRes.data.length > 0) setMenuItems(menuRes.data);
+        if (inventoryRes.data && inventoryRes.data.length > 0) setGroceryItems(inventoryRes.data);
+        if (notificationsRes.data) setKitchenAlerts(notificationsRes.data);
+      } catch (err) {
+        console.error("Error fetching from Supabase:", err);
+      }
+    };
 
-      const groceryUnsubscribe = onSnapshot(collection(db, 'groceryItems'), (snapshot) => {
-        if (!snapshot.empty) {
-          setGroceryItems(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-        } else {
-          setGroceryItems(initialGrocery);
-        }
-      });
+    if (isSupabaseConfigured) {
+      fetchInitialData();
 
-      const notifyUnsubscribe = onSnapshot(query(collection(db, 'notifications'), orderBy('timestamp', 'desc')), (snapshot) => {
-        setNotifications(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-
-      const cancelUnsubscribe = onSnapshot(query(collection(db, 'cancellations'), orderBy('timestamp', 'desc')), (snapshot) => {
-        setCancellations(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-
-      const alertsUnsubscribe = onSnapshot(query(collection(db, 'kitchenAlerts'), orderBy('timestamp', 'desc')), (snapshot) => {
-        setKitchenAlerts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-
-      return () => {
-        unsubscribeOrders();
-        menuUnsubscribe();
-        billsUnsubscribe();
-        groceryUnsubscribe();
-        notifyUnsubscribe();
-        cancelUnsubscribe();
-        alertsUnsubscribe();
-      };
+      // Subscribe to all relevant tables
+      activeChannel = supabase.channel('public:rms_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+          setOrders(current => {
+            if (payload.eventType === 'INSERT') return [payload.new, ...current];
+            if (payload.eventType === 'UPDATE') return current.map(o => o.id === payload.new.id ? payload.new : o);
+            if (payload.eventType === 'DELETE') return current.filter(o => o.id !== payload.old.id);
+            return current;
+          });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'menu_items' }, (payload) => {
+          setMenuItems(current => {
+            if (payload.eventType === 'INSERT') return [...current, payload.new];
+            if (payload.eventType === 'UPDATE') return current.map(m => m.id === payload.new.id ? payload.new : m);
+            if (payload.eventType === 'DELETE') return current.filter(m => m.id !== payload.old.id);
+            return current;
+          });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
+          setGroceryItems(current => {
+            if (payload.eventType === 'INSERT') return [...current, payload.new];
+            if (payload.eventType === 'UPDATE') return current.map(i => i.id === payload.new.id ? payload.new : i);
+            if (payload.eventType === 'DELETE') return current.filter(i => i.id !== payload.old.id);
+            return current;
+          });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
+          setKitchenAlerts(current => {
+            if (payload.eventType === 'INSERT') {
+              toast.error(payload.new.message, { icon: '🚨' });
+              return [payload.new, ...current];
+            }
+            if (payload.eventType === 'UPDATE') return current.map(n => n.id === payload.new.id ? payload.new : n);
+            if (payload.eventType === 'DELETE') return current.filter(n => n.id !== payload.old.id);
+            return current;
+          });
+        })
+        .subscribe();
     } else {
       // Mock Real-time Updates using Window Custom Events
       const handleStorageOrEvent = () => {
@@ -146,283 +157,249 @@ export function StoreProvider({ children }) {
       handleStorageOrEvent(); // Init first load
       return () => window.removeEventListener('rms_sync', handleStorageOrEvent);
     }
+
+    return () => {
+      if (activeChannel) supabase.removeChannel(activeChannel);
+    };
   }, []);
 
   const triggerSync = (updatedOrders, updatedMenu, updatedBills, updatedLogs, updatedGrocery, updatedNotifications, updatedCancellations, updatedAlerts) => {
-    if (updatedOrders !== undefined && updatedOrders !== null) localStorage.setItem('rms_orders', JSON.stringify(updatedOrders));
-    if (updatedMenu !== undefined && updatedMenu !== null) localStorage.setItem('rms_menu', JSON.stringify(updatedMenu));
-    if (updatedGrocery !== undefined && updatedGrocery !== null) localStorage.setItem('rms_grocery', JSON.stringify(updatedGrocery));
-    if (updatedBills !== undefined && updatedBills !== null) localStorage.setItem('rms_bills', JSON.stringify(updatedBills));
-    if (updatedLogs !== undefined && updatedLogs !== null) localStorage.setItem('rms_logs', JSON.stringify(updatedLogs));
-    if (updatedNotifications !== undefined && updatedNotifications !== null) localStorage.setItem('rms_notifications', JSON.stringify(updatedNotifications));
-    if (updatedCancellations !== undefined && updatedCancellations !== null) localStorage.setItem('rms_cancellations', JSON.stringify(updatedCancellations));
-    if (updatedAlerts !== undefined && updatedAlerts !== null) localStorage.setItem('rms_kitchen_alerts', JSON.stringify(updatedAlerts));
-    
-    // Dispatch local event for same-tab cross-view updates
+    // Fallback localStorage sync for when Supabase is not configured
+    if (updatedOrders !== undefined && updatedOrders !== null) { localStorage.setItem('rms_orders', JSON.stringify(updatedOrders)); setOrders(updatedOrders); }
+    if (updatedMenu !== undefined && updatedMenu !== null) { localStorage.setItem('rms_menu', JSON.stringify(updatedMenu)); setMenuItems(updatedMenu); }
+    if (updatedGrocery !== undefined && updatedGrocery !== null) { localStorage.setItem('rms_grocery', JSON.stringify(updatedGrocery)); setGroceryItems(updatedGrocery); }
+    if (updatedBills !== undefined && updatedBills !== null) { localStorage.setItem('rms_bills', JSON.stringify(updatedBills)); setBills(updatedBills); }
+    if (updatedLogs !== undefined && updatedLogs !== null) { localStorage.setItem('rms_logs', JSON.stringify(updatedLogs)); setActivityLogs(updatedLogs); }
+    if (updatedNotifications !== undefined && updatedNotifications !== null) { localStorage.setItem('rms_notifications', JSON.stringify(updatedNotifications)); setNotifications(updatedNotifications); }
+    if (updatedCancellations !== undefined && updatedCancellations !== null) { localStorage.setItem('rms_cancellations', JSON.stringify(updatedCancellations)); setCancellations(updatedCancellations); }
+    if (updatedAlerts !== undefined && updatedAlerts !== null) { localStorage.setItem('rms_kitchen_alerts', JSON.stringify(updatedAlerts)); setKitchenAlerts(updatedAlerts); }
     window.dispatchEvent(new Event('rms_sync'));
+  };
+
+  // Helper: deduct stock from menu items, returns { nextMenu, lowStockItems }
+  const deductMenuStock = (orderItems) => {
+    const lowStockItems = [];
+    const nextMenu = menuItems.map(item => {
+      let totalDeductedQty = 0;
+      const directOrdered = orderItems.find(i => i.id === item.id);
+      if (directOrdered) totalDeductedQty += directOrdered.qty;
+      orderItems.forEach(orderedItem => {
+        if (orderedItem.isCombo && orderedItem.comboItems) {
+          const hasItem = orderedItem.comboItems.some(ci =>
+            (typeof ci === 'string' && ci === item.id) || (typeof ci === 'object' && ci?.id === item.id)
+          );
+          if (hasItem) totalDeductedQty += orderedItem.qty;
+        }
+      });
+      if (totalDeductedQty > 0) {
+        const newStock = Math.max(0, item.stock - totalDeductedQty);
+        if (item.stock > 3 && newStock <= 3) lowStockItems.push({ ...item, stock: newStock });
+        return { ...item, stock: newStock };
+      }
+      return item;
+    });
+    return { nextMenu, lowStockItems };
+  };
+
+  // Helper: deduct pantry ingredients, returns nextGrocery
+  const deductPantryIngredients = (orderItems) => {
+    return groceryItems.map(grocery => {
+      let totalDeduction = 0;
+      orderItems.forEach(orderedItem => {
+        const itemsToCheck = orderedItem.isCombo ? (orderedItem.comboItems || []) : [orderedItem];
+        itemsToCheck.forEach(subItem => {
+          const resolvedItem = typeof subItem === 'string' ? menuItems.find(mi => mi.id === subItem) : subItem;
+          if (resolvedItem?.ingredients && Array.isArray(resolvedItem.ingredients)) {
+            resolvedItem.ingredients.forEach(ing => {
+              const isMatch = (ing.pantryLinkId && ing.pantryLinkId === grocery.id) ||
+                (!ing.pantryLinkId && (grocery.name.toLowerCase() === ing.name.toLowerCase() ||
+                  grocery.name.toLowerCase().includes(ing.name.toLowerCase()) ||
+                  ing.name.toLowerCase().includes(grocery.name.toLowerCase())));
+              if (isMatch) {
+                const qtyMultiplier = orderedItem.qty;
+                let factor = 1;
+                const ingUnit = (ing.unit || '').toLowerCase();
+                const grocUnit = (grocery.unit || '').toLowerCase();
+                if (ingUnit === 'g' && grocUnit === 'kg') factor = 0.001;
+                else if (ingUnit === 'ml' && (grocUnit === 'liters' || grocUnit === 'l' || grocUnit === 'liter')) factor = 0.001;
+                else if (ingUnit === 'kg' && grocUnit === 'g') factor = 1000;
+                else if ((ingUnit === 'liters' || ingUnit === 'l' || ingUnit === 'liter') && grocUnit === 'ml') factor = 1000;
+                totalDeduction += (ing.qty * factor) * qtyMultiplier;
+              }
+            });
+          }
+        });
+      });
+      return totalDeduction > 0 ? { ...grocery, qty: Math.max(0, grocery.qty - totalDeduction) } : grocery;
+    });
   };
 
   const createOrder = async (orderData) => {
     const newOrder = {
-      ...orderData,
-      orderNo: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-      status: 'pending', // Starts in KDS Pending column
-      timestamp: new Date().toISOString(),
-      urgent: Math.random() > 0.6
+      order_no: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      table_no: orderData.table || null,
+      order_type: orderData.orderType || 'dine-in',
+      customer_name: orderData.customerName || null,
+      status: 'pending',
+      subtotal: orderData.subtotal || 0,
+      tax: orderData.tax || 0,
+      total: orderData.total || 0,
+      items: orderData.items || [],
+      timestamp: new Date().toISOString()
     };
 
     if (orderData.orderType === 'parcel') {
-      newOrder.parcelToken = `P${Math.floor(100 + Math.random() * 900)}`;
+      newOrder.customer_name = orderData.customerName || 'Walk-in';
     }
 
-    if (!isFirebaseMock && db) {
-      await addDoc(collection(db, 'orders'), newOrder);
-    } else {
-      const nextOrders = [newOrder, ...orders];
-      const newlyLowStockItems = [];
-      // Deduct stock portions and raw ingredients
-      const nextMenu = menuItems.map(item => {
-        let totalDeductedQty = 0;
-        
-        // Find if this item itself was ordered directly
-        const directOrdered = orderData.items.find(i => i.id === item.id);
-        if (directOrdered) {
-          totalDeductedQty += directOrdered.qty;
+    if (isSupabaseConfigured) {
+      try {
+        // Insert order into Supabase
+        const { error } = await supabase.from('orders').insert([newOrder]);
+        if (error) throw error;
+
+        // Deduct menu stock
+        const { nextMenu, lowStockItems } = deductMenuStock(orderData.items);
+        for (const item of nextMenu) {
+          const original = menuItems.find(m => m.id === item.id);
+          if (original && original.stock !== item.stock) {
+            await supabase.from('menu_items').update({ stock: item.stock }).eq('id', item.id);
+          }
         }
 
-        // Find if this item is part of a combo that was ordered
-        orderData.items.forEach(orderedItem => {
-          if (orderedItem.isCombo && orderedItem.comboItems) {
-            const hasItem = orderedItem.comboItems.some(ci => 
-              (typeof ci === 'string' && ci === item.id) || 
-              (typeof ci === 'object' && ci?.id === item.id)
-            );
-            if (hasItem) {
-              totalDeductedQty += orderedItem.qty;
-            }
+        // Deduct pantry ingredients
+        const nextGrocery = deductPantryIngredients(orderData.items);
+        for (const g of nextGrocery) {
+          const original = groceryItems.find(og => og.id === g.id);
+          if (original && original.qty !== g.qty) {
+            await supabase.from('inventory').update({ qty: g.qty }).eq('id', g.id);
           }
-        });
-
-        if (totalDeductedQty > 0) {
-          const newStock = Math.max(0, item.stock - totalDeductedQty);
-          if (item.stock > 3 && newStock <= 3) {
-            newlyLowStockItems.push({ ...item, stock: newStock });
-          }
-          return { ...item, stock: newStock };
         }
-        return item;
-      });
 
-      // Pantry-Linked Ingredient Deduction (automatically resolves dish ingredients to grocery inventory with unit conversion)
-      const nextGrocery = groceryItems.map(grocery => {
-        let totalDeduction = 0;
-        
-        orderData.items.forEach(orderedItem => {
-          // If it's a combo, compile all items in the combo
-          const itemsToCheck = orderedItem.isCombo 
-            ? (orderedItem.comboItems || [])
-            : [orderedItem];
-
-          itemsToCheck.forEach(subItem => {
-            const resolvedItem = typeof subItem === 'string'
-              ? menuItems.find(mi => mi.id === subItem)
-              : subItem;
-            
-            if (resolvedItem && resolvedItem.ingredients && Array.isArray(resolvedItem.ingredients)) {
-              resolvedItem.ingredients.forEach(ing => {
-                // Link match: either via pantryLinkId or case-insensitive matching name/sub-strings
-                const isMatch = (ing.pantryLinkId && ing.pantryLinkId === grocery.id) || 
-                                (!ing.pantryLinkId && (
-                                  grocery.name.toLowerCase() === ing.name.toLowerCase() ||
-                                  grocery.name.toLowerCase().includes(ing.name.toLowerCase()) ||
-                                  ing.name.toLowerCase().includes(grocery.name.toLowerCase())
-                                ));
-                
-                if (isMatch) {
-                  const qtyMultiplier = orderedItem.qty; // Scale with combo quantity ordered
-                  let factor = 1;
-                  
-                  // Unit conversions
-                  const ingUnit = (ing.unit || '').toLowerCase();
-                  const grocUnit = (grocery.unit || '').toLowerCase();
-                  
-                  if (ingUnit === 'g' && grocUnit === 'kg') {
-                    factor = 0.001;
-                  } else if (ingUnit === 'ml' && (grocUnit === 'liters' || grocUnit === 'l' || grocUnit === 'liter')) {
-                    factor = 0.001;
-                  } else if (ingUnit === 'kg' && grocUnit === 'g') {
-                    factor = 1000;
-                  } else if ((ingUnit === 'liters' || ingUnit === 'l' || ingUnit === 'liter') && grocUnit === 'ml') {
-                    factor = 1000;
-                  }
-                  
-                  totalDeduction += (ing.qty * factor) * qtyMultiplier;
-                }
-              });
-            }
-          });
-        });
-        
-        return totalDeduction > 0 ? { ...grocery, qty: Math.max(0, grocery.qty - totalDeduction) } : grocery;
-      });
-
-      const orderRefText = newOrder.orderType === 'parcel' ? `Parcel ${newOrder.parcelToken}` : `Table ${newOrder.table}`;
-      const newLog = { id: Math.random().toString(), log: `New order ${newOrder.orderNo} sent for ${orderRefText}`, time: 'Just now' };
-      const nextLogs = [newLog, ...activityLogs];
-
-      const newNotify = {
-        id: Math.random().toString(),
-        message: `🔔 ${orderRefText} - New order placed (${newOrder.orderNo})`,
-        timestamp: new Date().toISOString(),
-        read: false
-      };
-      const nextNotifications = [newNotify, ...notifications];
-
-      let finalNotifications = [...nextNotifications];
-      let nextAlerts = [...kitchenAlerts];
-      let finalLogs = [...nextLogs];
-
-      if (newlyLowStockItems.length > 0) {
-        newlyLowStockItems.forEach(item => {
-          finalNotifications.unshift({
-            id: Math.random().toString(),
-            message: `⚠️ Low Stock Alert: ${item.name} is running low (${item.stock} left)`,
-            timestamp: new Date().toISOString(),
-            read: false
-          });
-          nextAlerts.unshift({
-            id: Math.random().toString(),
+        // Low stock alerts
+        for (const item of lowStockItems) {
+          await supabase.from('notifications').insert([{
             type: 'low_stock',
             message: `${item.name} stock is critically low (${item.stock} left)`,
-            status: 'active',
-            timestamp: new Date().toISOString()
-          });
-          finalLogs.unshift({
-            id: Math.random().toString(),
-            log: `Low stock detected for ${item.name} (${item.stock} left)`,
-            time: 'Just now'
-          });
+            status: 'active'
+          }]);
+        }
+      } catch (err) {
+        console.error('Error creating order in Supabase:', err);
+        toast.error('Failed to create order.');
+      }
+    } else {
+      // Fallback localStorage mode
+      newOrder.orderNo = newOrder.order_no;
+      newOrder.table = newOrder.table_no;
+      if (orderData.orderType === 'parcel') newOrder.parcelToken = `P${Math.floor(100 + Math.random() * 900)}`;
+      const nextOrders = [newOrder, ...orders];
+      const { nextMenu, lowStockItems } = deductMenuStock(orderData.items);
+      const nextGrocery = deductPantryIngredients(orderData.items);
+      const orderRefText = newOrder.order_type === 'parcel' ? `Parcel ${newOrder.parcelToken}` : `Table ${newOrder.table}`;
+      const newLog = { id: Math.random().toString(), log: `New order ${newOrder.orderNo} sent for ${orderRefText}`, time: 'Just now' };
+      const nextLogs = [newLog, ...activityLogs];
+      const newNotify = { id: Math.random().toString(), message: `🔔 ${orderRefText} - New order placed (${newOrder.orderNo})`, timestamp: new Date().toISOString(), read: false };
+      let finalNotifications = [newNotify, ...notifications];
+      let nextAlerts = [...kitchenAlerts];
+      if (lowStockItems.length > 0) {
+        lowStockItems.forEach(item => {
+          finalNotifications.unshift({ id: Math.random().toString(), message: `⚠️ Low Stock Alert: ${item.name} is running low (${item.stock} left)`, timestamp: new Date().toISOString(), read: false });
+          nextAlerts.unshift({ id: Math.random().toString(), type: 'low_stock', message: `${item.name} stock is critically low (${item.stock} left)`, status: 'active', timestamp: new Date().toISOString() });
         });
       }
-
-      triggerSync(nextOrders, nextMenu, null, finalLogs, nextGrocery, finalNotifications, null, nextAlerts);
+      triggerSync(nextOrders, nextMenu, null, nextLogs, nextGrocery, finalNotifications, null, nextAlerts);
     }
   };
 
   const updateOrderStatus = async (orderId, status) => {
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { status });
+    if (isSupabaseConfigured) {
+      try {
+        // Find by order_no or id
+        const target = orders.find(o => o.order_no === orderId || o.orderNo === orderId || o.id === orderId);
+        if (target) {
+          await supabase.from('orders').update({ status }).eq('id', target.id);
+        }
+      } catch (err) { console.error('Error updating order status:', err); }
     } else {
       const nextOrders = orders.map(o => o.orderNo === orderId || o.id === orderId ? { ...o, status } : o);
       const targetOrder = orders.find(o => o.orderNo === orderId || o.id === orderId);
-      
       const newLog = { id: Math.random().toString(), log: `Order ${targetOrder?.orderNo || orderId} marked as ${status}`, time: 'Just now' };
       const nextLogs = [newLog, ...activityLogs];
-
       let nextNotifications = [...notifications];
       if (status === 'ready' && targetOrder) {
         const orderRefText = targetOrder.orderType === 'parcel' ? `Parcel ${targetOrder.parcelToken}` : `Table #${targetOrder.table}`;
-        nextNotifications = [{
-          id: Math.random().toString(),
-          message: `📢 ${orderRefText} - Food items are READY!`,
-          timestamp: new Date().toISOString(),
-          read: false
-        }, ...nextNotifications];
+        nextNotifications = [{ id: Math.random().toString(), message: `📢 ${orderRefText} - Food items are READY!`, timestamp: new Date().toISOString(), read: false }, ...nextNotifications];
       } else if (status === 'ready_for_pickup' && targetOrder) {
-        nextNotifications = [{
-          id: Math.random().toString(),
-          message: `📦 Parcel ${targetOrder.parcelToken} is Ready for Pickup!`,
-          timestamp: new Date().toISOString(),
-          read: false
-        }, ...nextNotifications];
-
-        // MOCK SMS NOTIFICATION
+        nextNotifications = [{ id: Math.random().toString(), message: `📦 Parcel ${targetOrder.parcelToken} is Ready for Pickup!`, timestamp: new Date().toISOString(), read: false }, ...nextNotifications];
         if (targetOrder.phoneNumber) {
-          setTimeout(() => {
-            toast.success(`📱 SMS Sent to ${targetOrder.customerName} (${targetOrder.phoneNumber}): Your order ${targetOrder.parcelToken} is ready for pickup!`, { 
-              icon: '📱', 
-              duration: 5000,
-              style: { border: '1px solid #a855f7', background: '#f3e8ff', color: '#7e22ce' }
-            });
-          }, 1000);
+          setTimeout(() => { toast.success(`📱 SMS Sent to ${targetOrder.customerName} (${targetOrder.phoneNumber}): Your order ${targetOrder.parcelToken} is ready for pickup!`, { icon: '📱', duration: 5000 }); }, 1000);
         }
       }
-
       triggerSync(nextOrders, null, null, nextLogs, null, nextNotifications);
     }
   };
 
   const requestBalanceParcel = async (orderId) => {
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { balanceParcelStatus: 'pending', packagingCharge: 5.0 });
+    if (isSupabaseConfigured) {
+      const target = orders.find(o => o.order_no === orderId || o.orderNo === orderId || o.id === orderId);
+      if (target) await supabase.from('orders').update({ status: 'balance_parcel_pending' }).eq('id', target.id);
     } else {
       const nextOrders = orders.map(o => o.orderNo === orderId || o.id === orderId ? { ...o, balanceParcelStatus: 'pending', packagingCharge: 5.0 } : o);
-      
       const newLog = { id: Math.random().toString(), log: `Balance parcel requested for Order ${orderId}`, time: 'Just now' };
       const nextLogs = [newLog, ...activityLogs];
-
-      const newNotify = {
-        id: Math.random().toString(),
-        message: `📦 Kitchen Alert - Balance Parcel requested for Order ${orderId}!`,
-        timestamp: new Date().toISOString(),
-        read: false
-      };
+      const newNotify = { id: Math.random().toString(), message: `📦 Kitchen Alert - Balance Parcel requested for Order ${orderId}!`, timestamp: new Date().toISOString(), read: false };
       const nextNotifications = [newNotify, ...notifications];
-
       triggerSync(nextOrders, null, null, nextLogs, null, nextNotifications);
     }
   };
 
   const updateBalanceParcelStatus = async (orderId, status) => {
-    if (!isFirebaseMock && db) {
-      const orderRef = doc(db, 'orders', orderId);
-      await updateDoc(orderRef, { balanceParcelStatus: status });
+    if (isSupabaseConfigured) {
+      const target = orders.find(o => o.order_no === orderId || o.orderNo === orderId || o.id === orderId);
+      if (target) await supabase.from('orders').update({ status: `balance_parcel_${status}` }).eq('id', target.id);
     } else {
       const nextOrders = orders.map(o => o.orderNo === orderId || o.id === orderId ? { ...o, balanceParcelStatus: status } : o);
       const targetOrder = orders.find(o => o.orderNo === orderId || o.id === orderId);
-      
       const newLog = { id: Math.random().toString(), log: `Balance Parcel for ${orderId} marked as ${status}`, time: 'Just now' };
       const nextLogs = [newLog, ...activityLogs];
-      
       let nextNotifications = [...notifications];
       if (status === 'ready_for_pickup') {
-        const orderRefText = targetOrder.orderType === 'parcel' ? `Parcel ${targetOrder.parcelToken}` : `Table #${targetOrder.table}`;
-        nextNotifications = [{
-          id: Math.random().toString(),
-          message: `🛍️ ${orderRefText} - Balance Parcel is Packed & Ready!`,
-          timestamp: new Date().toISOString(),
-          read: false
-        }, ...nextNotifications];
+        const orderRefText = targetOrder?.orderType === 'parcel' ? `Parcel ${targetOrder.parcelToken}` : `Table #${targetOrder?.table}`;
+        nextNotifications = [{ id: Math.random().toString(), message: `🛍️ ${orderRefText} - Balance Parcel is Packed & Ready!`, timestamp: new Date().toISOString(), read: false }, ...nextNotifications];
       }
-
       triggerSync(nextOrders, null, null, nextLogs, null, nextNotifications);
     }
   };
 
   const processBill = async (billData) => {
-    const newBill = {
-      ...billData,
-      timestamp: new Date().toISOString()
-    };
-
-    if (!isFirebaseMock && db) {
-      await addDoc(collection(db, 'bills'), newBill);
+    if (isSupabaseConfigured) {
+      try {
+        // Update order status to 'billed' and store payment info
+        const target = orders.find(o => o.order_no === billData.orderNo || o.orderNo === billData.orderNo || o.id === billData.orderNo);
+        if (target) {
+          await supabase.from('orders').update({
+            status: 'billed',
+            payment_method: billData.paymentMethod,
+            subtotal: billData.subtotal,
+            tax: billData.tax,
+            total: billData.total
+          }).eq('id', target.id);
+        }
+      } catch (err) { console.error('Error processing bill:', err); }
     } else {
+      const newBill = { ...billData, timestamp: new Date().toISOString() };
       const nextBills = [newBill, ...bills];
       const nextOrders = orders.filter(o => o.orderNo !== billData.orderNo);
       const newLog = { id: Math.random().toString(), log: `Bill generated for ${billData.orderNo} - Total: $${billData.total}`, time: 'Just now' };
       const nextLogs = [newLog, ...activityLogs];
-
       triggerSync(nextOrders, null, nextBills, nextLogs);
     }
   };
 
   const updateMenuStock = async (itemId, stock) => {
-    if (!isFirebaseMock && db) {
-      const itemRef = doc(db, 'menuItems', itemId);
-      await updateDoc(itemRef, { stock, lastRestockedAt: new Date().toISOString() });
+    if (isSupabaseConfigured) {
+      await supabase.from('menu_items').update({ stock }).eq('id', itemId);
     } else {
       const nextMenu = menuItems.map(item => item.id === itemId ? { ...item, stock, lastRestockedAt: new Date().toISOString() } : item);
       triggerSync(null, nextMenu, null, null);
@@ -431,29 +408,53 @@ export function StoreProvider({ children }) {
 
   const addMenuItem = async (item) => {
     const newItem = {
-      ...item,
-      stock: parseInt(item.stock) || 10,
+      name: item.name,
       price: parseFloat(item.price) || 0,
-      veg: item.veg !== undefined ? item.veg : true,
-      chefSpecial: item.chefSpecial !== undefined ? item.chefSpecial : false,
-      prepTime: parseInt(item.prepTime) || 15,
-      timeRange: item.timeRange || 'Lunch',
+      category: item.category || 'Main Course',
+      stock: parseInt(item.stock) || 10,
+      image: item.image || '',
       description: item.description || '',
-      createdTimestamp: new Date().toISOString()
+      special_badges: item.specialBadges || [],
+      prep_time: parseInt(item.prepTime) || 15,
+      time_range: item.timeRange || 'Lunch',
+      dietary: item.dietary || 'None',
+      ingredients: item.ingredients || [],
+      is_combo: item.isCombo || false,
+      combo_items: item.comboItems || []
     };
-    if (!isFirebaseMock && db) {
-      await addDoc(collection(db, 'menuItems'), newItem);
+    if (isSupabaseConfigured) {
+      const { error } = await supabase.from('menu_items').insert([newItem]);
+      if (error) console.error('Error adding menu item:', error);
     } else {
       newItem.id = Math.random().toString();
+      newItem.specialBadges = newItem.special_badges;
+      newItem.prepTime = newItem.prep_time;
+      newItem.timeRange = newItem.time_range;
       const nextMenu = [...menuItems, newItem];
       triggerSync(null, nextMenu, null, null);
     }
   };
 
   const editMenuItem = async (itemId, updatedProps) => {
-    if (!isFirebaseMock && db) {
-      const itemRef = doc(db, 'menuItems', itemId);
-      await updateDoc(itemRef, updatedProps);
+    if (isSupabaseConfigured) {
+      // Map camelCase props to snake_case for Supabase columns
+      const mapped = {};
+      if (updatedProps.name !== undefined) mapped.name = updatedProps.name;
+      if (updatedProps.price !== undefined) mapped.price = updatedProps.price;
+      if (updatedProps.category !== undefined) mapped.category = updatedProps.category;
+      if (updatedProps.stock !== undefined) mapped.stock = updatedProps.stock;
+      if (updatedProps.image !== undefined) mapped.image = updatedProps.image;
+      if (updatedProps.description !== undefined) mapped.description = updatedProps.description;
+      if (updatedProps.specialBadges !== undefined) mapped.special_badges = updatedProps.specialBadges;
+      if (updatedProps.prepTime !== undefined) mapped.prep_time = updatedProps.prepTime;
+      if (updatedProps.timeRange !== undefined) mapped.time_range = updatedProps.timeRange;
+      if (updatedProps.dietary !== undefined) mapped.dietary = updatedProps.dietary;
+      if (updatedProps.ingredients !== undefined) mapped.ingredients = updatedProps.ingredients;
+      if (updatedProps.isCombo !== undefined) mapped.is_combo = updatedProps.isCombo;
+      if (updatedProps.comboItems !== undefined) mapped.combo_items = updatedProps.comboItems;
+      // Pass through any snake_case props directly
+      Object.keys(updatedProps).forEach(k => { if (k.includes('_')) mapped[k] = updatedProps[k]; });
+      await supabase.from('menu_items').update(mapped).eq('id', itemId);
     } else {
       const nextMenu = menuItems.map(item => item.id === itemId ? { ...item, ...updatedProps } : item);
       triggerSync(null, nextMenu, null, null);
@@ -461,9 +462,8 @@ export function StoreProvider({ children }) {
   };
 
   const deleteMenuItem = async (itemId) => {
-    if (!isFirebaseMock && db) {
-      const itemRef = doc(db, 'menuItems', itemId);
-      await deleteDoc(itemRef);
+    if (isSupabaseConfigured) {
+      await supabase.from('menu_items').delete().eq('id', itemId);
     } else {
       const nextMenu = menuItems.filter(item => item.id !== itemId);
       triggerSync(null, nextMenu, null, null);

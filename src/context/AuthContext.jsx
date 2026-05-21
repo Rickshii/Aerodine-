@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, isFirebaseMock } from '../firebase';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { supabase, isSupabaseConfigured } from '../supabase';
 
 const AuthContext = createContext();
 
@@ -9,38 +8,91 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isFirebaseMock && auth) {
-      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        if (firebaseUser) {
-          // Extract mock role from custom attributes, in a real app this comes from custom claims or DB
-          const role = firebaseUser.email.split('@')[0]; // Simple logic for demo
-          setUser({
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            role: role || 'waiter'
-          });
+    let subscription;
+
+    const initializeAuth = async () => {
+      if (isSupabaseConfigured) {
+        // Get initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          await fetchAndSetUserRole(session.user);
         } else {
           setUser(null);
+          setLoading(false);
+        }
+
+        // Listen for auth changes
+        const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+          if (session?.user) {
+            await fetchAndSetUserRole(session.user);
+          } else {
+            setUser(null);
+            setLoading(false);
+          }
+        });
+        
+        subscription = data.subscription;
+      } else {
+        // Fallback mock logic if Supabase isn't fully set up yet
+        const stored = localStorage.getItem('rms_user');
+        if (stored) {
+          setUser(JSON.parse(stored));
         }
         setLoading(false);
-      });
-      return unsubscribe;
-    } else {
-      // Load mock session from local storage if testing locally
-      const stored = localStorage.getItem('rms_user');
-      if (stored) {
-        setUser(JSON.parse(stored));
       }
+    };
+
+    initializeAuth();
+
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
+  }, []);
+
+  const fetchAndSetUserRole = async (authUser) => {
+    try {
+      // Query the custom users table for the role
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', authUser.id)
+        .single();
+        
+      if (data && !error) {
+        setUser({
+          uid: authUser.id,
+          email: authUser.email,
+          role: data.role
+        });
+      } else {
+        // Fallback if no role in table
+        setUser({
+          uid: authUser.id,
+          email: authUser.email,
+          role: 'waiter' // Default role
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching user role", err);
+    } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const login = async (email, password, mockRole = 'waiter') => {
     setLoading(true);
-    if (!isFirebaseMock && auth) {
+    if (isSupabaseConfigured) {
       try {
-        const credential = await signInWithEmailAndPassword(auth, email, password);
-        return credential;
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        if (error) throw error;
+        
+        await fetchAndSetUserRole(data.user);
+        return data;
       } catch (err) {
         setLoading(false);
         throw err;
@@ -60,8 +112,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    if (!isFirebaseMock && auth) {
-      await signOut(auth);
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+      setUser(null);
     } else {
       setUser(null);
       localStorage.removeItem('rms_user');
