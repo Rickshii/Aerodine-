@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { LayoutGrid, FileText, ChefHat, BarChart3, Settings, Moon, Sun, Bell, LogOut, ShieldAlert } from 'lucide-react';
+import { LayoutGrid, FileText, ChefHat, BarChart3, Settings, Moon, Sun, Bell, LogOut, ShieldAlert, Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { StoreProvider, useStore } from './context/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -38,7 +38,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children;
 }
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,17 +60,22 @@ function Sidebar() {
   const filteredItems = navItems.filter(item => item.roles.includes(user?.role));
 
   return (
-    <aside className="w-80 h-full bg-[#F8F7F4]/90 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl border-r border-slate-200 dark:border-slate-800/80 flex flex-col p-6 z-10" aria-label="Main Navigation">
-      <div className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-orange-500/20">
-          AD
+    <aside className={`fixed inset-y-0 left-0 lg:relative z-50 w-80 h-full bg-[#F8F7F4]/90 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl border-r border-slate-200 dark:border-slate-800/80 flex flex-col p-6 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`} aria-label="Main Navigation">
+      <div className="flex items-center justify-between gap-3 mb-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-orange-500/20">
+            AD
+          </div>
+          <div>
+            <h2 className="font-extrabold text-lg leading-none tracking-tight text-slate-950 dark:text-white">AeroDine</h2>
+            <span className="text-[10px] text-orange-500 font-extrabold tracking-wider uppercase mt-1 block">
+              {user?.role === 'admin' ? 'Super Admin' : user?.role} Mode
+            </span>
+          </div>
         </div>
-        <div>
-          <h2 className="font-extrabold text-lg leading-none tracking-tight text-slate-950 dark:text-white">AeroDine</h2>
-          <span className="text-[10px] text-orange-500 font-extrabold tracking-wider uppercase mt-1 block">
-            {user?.role === 'admin' ? 'Super Admin' : user?.role} Mode
-          </span>
-        </div>
+        <button onClick={onClose} className="lg:hidden p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white" aria-label="Close navigation menu">
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -98,7 +103,7 @@ function Sidebar() {
           />
           <div>
             <div className="font-extrabold text-sm capitalize text-slate-950 dark:text-white">{user?.role}</div>
-            <div className="text-xs text-slate-450 font-bold">Online</div>
+            <div className="text-xs text-slate-455 font-bold">Online</div>
           </div>
         </div>
         <button onClick={handleLogout} className="p-3 bg-slate-200/50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all" aria-label="Log out session">
@@ -114,12 +119,17 @@ function AppLayout() {
   const { notifications, clearNotifications } = useStore();
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (location.pathname === '/chef' || user?.role === 'chef') {
       setIsDark(true);
     }
   }, [location.pathname, user?.role]);
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (isDark) {
@@ -170,26 +180,42 @@ function AppLayout() {
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-[#f8fafc] dark:bg-[#020617] transition-colors duration-300">
       <Toaster position="top-right" />
-      {showSidebar && <Sidebar />}
+      {showSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
       
-      <div className="flex-1 h-full overflow-y-auto px-10 py-8 relative flex flex-col gap-6">
+      {showSidebar && isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)} 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+        />
+      )}
+      
+      <div className="flex-1 h-full overflow-y-auto px-4 py-4 md:px-10 md:py-8 relative flex flex-col gap-6">
         {showSidebar && (
-          <header className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-extrabold tracking-tight capitalize text-slate-950 dark:text-white">{location.pathname.replace('/', '') || 'Order Board'}</h1>
-                <span className="flex items-center gap-1.5 bg-orange-500/10 text-orange-500 text-[9px] font-extrabold px-2.5 py-0.5 rounded-full border border-orange-550/30">
-                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-ping"></span>
-                  Live Sync
-                </span>
+          <header className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800 gap-4">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(true)} 
+                className="lg:hidden p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-slate-655 dark:text-slate-350 hover:text-orange-500 transition-all flex-shrink-0"
+                aria-label="Open sidebar"
+              >
+                <Menu size={18} />
+              </button>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl md:text-2xl font-extrabold tracking-tight capitalize text-slate-950 dark:text-white truncate max-w-[150px] md:max-w-none">{location.pathname.replace('/', '') || 'Order Board'}</h1>
+                  <span className="flex items-center gap-1.5 bg-orange-500/10 text-orange-500 text-[9px] font-extrabold px-2.5 py-0.5 rounded-full border border-orange-550/30 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 bg-orange-550 rounded-full animate-ping"></span>
+                    Live Sync
+                  </span>
+                </div>
+                <p className="text-xs text-slate-455 font-bold hidden md:block">Welcome to your luxury workspace dashboard</p>
               </div>
-              <p className="text-xs text-slate-450 font-bold">Welcome to your luxury workspace dashboard</p>
             </div>
             <div className="flex items-center gap-4">
-              <button onClick={() => setIsDark(!isDark)} className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full shadow-sm text-slate-600 dark:text-slate-350 hover:text-orange-500 transition-all" aria-label="Toggle visual theme">
+              <button onClick={() => setIsDark(!isDark)} className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full shadow-sm text-slate-650 dark:text-slate-350 hover:text-orange-500 transition-all" aria-label="Toggle visual theme">
                 {isDark ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              <button className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full shadow-sm text-slate-600 dark:text-slate-350 hover:text-orange-500 transition-all relative" aria-label="View recent notifications">
+              <button className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full shadow-sm text-slate-650 dark:text-slate-350 hover:text-orange-500 transition-all relative" aria-label="View recent notifications">
                 <Bell size={18} />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full"></span>
               </button>

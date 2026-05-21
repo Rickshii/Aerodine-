@@ -1038,9 +1038,9 @@ export default function ManagerDashboard() {
                 <p className="text-[10px] text-slate-400 font-bold">Aggregate revenue breakdown by food dietary badges</p>
               </div>
 
-              <div className="h-56 flex items-center justify-between gap-6 px-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 px-2 sm:px-4 h-auto sm:h-56">
                 {/* Recharts Pie Chart */}
-                <div className="relative w-40 h-40">
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 shrink-0">
                   {(() => {
                     const dietaryChartData = [
                       { name: 'Veg', value: 35, color: '#10b981' },
@@ -1055,8 +1055,8 @@ export default function ManagerDashboard() {
                             data={dietaryChartData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={45}
-                            outerRadius={65}
+                            innerRadius={35}
+                            outerRadius={55}
                             paddingAngle={5}
                             dataKey="value"
                             stroke="none"
@@ -1074,12 +1074,12 @@ export default function ManagerDashboard() {
                     );
                   })()}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-sm font-extrabold text-[#1A1A1A] dark:text-white">${todayRevenue.toFixed(2)}</span>
+                    <span className="text-xs sm:text-sm font-extrabold text-[#1A1A1A] dark:text-white">${todayRevenue.toFixed(0)}</span>
                     <span className="text-[8px] text-slate-400 font-bold uppercase mt-0.5">Today</span>
                   </div>
                 </div>
 
-                <div className="space-y-3 text-[10px] font-bold flex-1">
+                <div className="space-y-3 text-[10px] font-bold w-full sm:w-auto flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -1214,7 +1214,7 @@ export default function ManagerDashboard() {
 
           {/* Grocery interactive table */}
           <div className="glass overflow-hidden border border-white/20 dark:border-white/5">
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs font-semibold text-slate-400">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
@@ -1270,6 +1270,51 @@ export default function ManagerDashboard() {
                   })}
                 </tbody>
               </table>
+            </div>
+            
+            {/* Mobile Cards View */}
+            <div className="md:hidden flex flex-col gap-3 p-4">
+              {groceryItems.map(item => {
+                const isLow = item.qty <= item.stockThreshold;
+                return (
+                  <div key={item.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-extrabold text-slate-950 dark:text-white text-sm">{item.name}</h4>
+                        <span className="bg-slate-100 dark:bg-slate-850 px-2 py-0.5 mt-1 inline-block rounded text-[9px] font-bold text-slate-500">
+                          {item.category}
+                        </span>
+                      </div>
+                      {isLow ? (
+                        <span className="bg-red-500/10 text-red-500 px-2 py-0.5 rounded text-[9px] font-bold border border-red-500/20 animate-pulse-red">Low Stock</span>
+                      ) : (
+                        <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded text-[9px] font-bold border border-emerald-500/20">Adequate</span>
+                      )}
+                    </div>
+                    
+                    <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-950 p-2 rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={item.qty}
+                          onChange={e => updateGroceryStock(item.id, e.target.value)}
+                          className="w-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg py-1.5 font-bold focus:outline-none focus:border-orange-500"
+                        />
+                        <span className="text-[10px] text-slate-500 font-bold">{item.unit}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">Min: {item.stockThreshold.toFixed(1)}</span>
+                    </div>
+                    
+                    <button
+                      onClick={() => deleteGroceryItem(item.id)}
+                      className="w-full py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 rounded-xl text-red-500 flex items-center justify-center gap-1.5 text-[10px] font-extrabold"
+                    >
+                      <Trash2 size={12} /> Remove Item
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1396,10 +1441,10 @@ export default function ManagerDashboard() {
       {/* DISH ADD/EDIT MODAL FORM */}
       {(showAddMenuModal || showEditMenuModal) && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="glass w-full max-w-lg border border-white/20 dark:border-white/5 relative flex flex-col shadow-2xl rounded-2xl max-h-[90vh]">
+          <div className="glass w-full max-w-lg border border-white/20 dark:border-white/5 relative flex flex-col shadow-2xl rounded-2xl max-h-[85vh] sm:max-h-[90vh]">
             
             {/* Header - Sticky */}
-            <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center shrink-0">
+            <div className="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center shrink-0">
               <h2 className="text-lg font-bold flex items-center gap-2 text-[#1A1A1A] dark:text-white">
                 <Sparkles className="text-mint-500" size={20} />
                 {editingItem ? 'Edit Catalog Dish' : 'Create Catalog Dish'}
@@ -1413,7 +1458,7 @@ export default function ManagerDashboard() {
             </div>
 
             {/* Scrollable Form Content */}
-            <div className="p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
+            <div className="p-5 sm:p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent pb-10">
               <form id="menu-form" onSubmit={handleSaveMenu} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Dish Name</label>

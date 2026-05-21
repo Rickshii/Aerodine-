@@ -302,20 +302,20 @@ export default function ChefDisplay() {
 
       {/* Red Glowing KDS Emergency Alert Dashboard */}
       {combinedAlerts.length > 0 && (
-        <div className="bg-slate-900/40 border border-white/10 rounded-[24px] p-5 flex flex-col gap-4 relative shadow-lg">
-          <div className="flex justify-between items-center">
+        <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-[24px] p-4 sm:p-5 flex flex-col gap-4 sticky top-0 z-40 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+          <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3">
             <span className="font-extrabold text-xs text-red-500 uppercase tracking-widest flex items-center gap-2">
               <span className={`w-3.5 h-3.5 rounded-full bg-red-500 shrink-0 ${unreadAlertsCount > 0 ? 'animate-ping' : ''}`}></span>
-              🚨 EMERGENCY ALERTS: {activeAlertsCount} Active ({unreadAlertsCount} Unread)
+              🚨 ALERTS: {activeAlertsCount} Active ({unreadAlertsCount} Unread)
             </span>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setIsMuted(!isMuted)} className={`text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider border flex items-center gap-1.5 transition-all ${isMuted ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-red-500/20 text-red-400 border-red-500/30 shadow-glow-red'}`}>
-                {isMuted ? <><VolumeX size={12}/> Silenced</> : <><Volume2 size={12}/> Mute Alerts</>}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button onClick={() => setIsMuted(!isMuted)} className={`text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider border flex items-center justify-center sm:justify-start gap-1.5 transition-all flex-1 sm:flex-none ${isMuted ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-red-500/20 text-red-400 border-red-500/30 shadow-glow-red'}`}>
+                {isMuted ? <><VolumeX size={12}/> Silenced</> : <><Volume2 size={12}/> Mute</>}
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[300px] overflow-y-auto pr-1">
+          <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[300px] overflow-x-auto sm:overflow-y-auto pb-2 sm:pb-0 sm:pr-1 snap-x scrollbar-none sm:scrollbar-thin">
             <AnimatePresence>
               {combinedAlerts.map(alert => (
                 <motion.div 
@@ -613,36 +613,36 @@ export default function ChefDisplay() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5 sm:gap-1">
                     <button
                       onClick={() => updateMenuStock(item.id, (item.stock || 0) + 5)}
-                      className="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[9px] font-bold transition-all"
+                      className="flex-1 py-2 sm:py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
                     >
                       +5
                     </button>
                     <button
                       onClick={() => updateMenuStock(item.id, (item.stock || 0) + 10)}
-                      className="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[9px] font-bold transition-all"
+                      className="flex-1 py-2 sm:py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
                     >
                       +10
                     </button>
                     <button
                       onClick={() => updateMenuStock(item.id, (item.stock || 0) + 20)}
-                      className="flex-1 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[9px] font-bold transition-all"
+                      className="flex-1 py-2 sm:py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
                     >
                       +20
                     </button>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5 sm:gap-1">
                     <button
                       onClick={() => updateMenuStock(item.id, 50)}
-                      className="flex-1 py-1 bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-450 border border-emerald-500/20 rounded-lg text-[9px] font-bold transition-all"
+                      className="flex-1 py-2 sm:py-1 bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-450 border border-emerald-500/20 rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
                     >
-                      Restock Full (50)
+                      Restock Full
                     </button>
                     <button
                       onClick={() => updateMenuStock(item.id, 0)}
-                      className="py-1 px-2.5 bg-red-500/10 hover:bg-red-500/25 text-red-500 border border-red-500/20 rounded-lg text-[9px] font-bold transition-all"
+                      className="py-2 sm:py-1 px-3 sm:px-2.5 bg-red-500/10 hover:bg-red-500/25 text-red-500 border border-red-500/20 rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
                     >
                       Set Out
                     </button>
@@ -682,7 +682,18 @@ function KdsTicketCard({ order, elapsedSeconds, onMoveForward, onMoveBackward, g
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`glass overflow-hidden flex flex-col border bg-[#1C1C1E]/95 shadow-xl relative transition-all duration-300 ${isDelayed ? 'border-coral-500 shadow-glow-orange border-2' : isUrgent ? 'border-gold-500 border border-t-8 border-t-gold-500' : isParcel ? 'border-purple-500/50 shadow-glow-purple border-l-4 border-l-purple-500' : 'border-slate-850'}`}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.2}
+      onDragEnd={(e, { offset, velocity }) => {
+        const swipe = offset.x;
+        if (swipe > 80 && onMoveForward) {
+          onMoveForward();
+        } else if (swipe < -80 && onMoveBackward) {
+          onMoveBackward();
+        }
+      }}
+      className={`glass overflow-hidden flex flex-col border bg-[#1C1C1E]/95 shadow-xl relative transition-all duration-300 touch-pan-y ${isDelayed ? 'border-coral-500 shadow-glow-orange border-2' : isUrgent ? 'border-gold-500 border border-t-8 border-t-gold-500' : isParcel ? 'border-purple-500/50 shadow-glow-purple border-l-4 border-l-purple-500' : 'border-slate-850'}`}
     >
       {/* Urgent / Delayed Glow Banner */}
       {isDelayed && (

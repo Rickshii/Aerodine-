@@ -24,6 +24,7 @@ export default function WaiterPanel() {
   const [tableNo, setTableNo] = useState(1);
   const [notes, setNotes] = useState('');
   const [sending, setSending] = useState(false);
+  const [showMobileCart, setShowMobileCart] = useState(false);
 
   // Parcel Fields
   const [orderType, setOrderType] = useState('dine-in'); // 'dine-in' | 'parcel'
@@ -395,7 +396,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
 
               <motion.div 
                 layout 
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6"
               >
                 <AnimatePresence mode="popLayout">
                   {filteredFoods.map(food => {
@@ -408,49 +409,49 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
                       const savings = originalSum - food.price;
                       return (
                         <motion.div
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          whileHover={!isOutOfStock ? { y: -8, scale: 1.01 } : {}}
-                          key={food.id}
-                          className={`glass overflow-hidden flex flex-col group relative transition-all duration-300 border-2 ${
-                            isOutOfStock 
-                              ? 'border-red-500/40 bg-red-500/5'
-                              : 'border-purple-500/40 hover:border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:shadow-2xl'
-                          }`}
-                          onClick={() => !isOutOfStock && openDishDetails(food)}
+                           layout
+                           initial={{ opacity: 0, scale: 0.95 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           exit={{ opacity: 0, scale: 0.95 }}
+                           whileHover={!isOutOfStock ? { y: -8, scale: 1.01 } : {}}
+                           key={food.id}
+                           className={`glass overflow-hidden flex flex-col group relative transition-all duration-300 border-2 ${
+                             isOutOfStock 
+                               ? 'border-red-500/40 bg-red-500/5'
+                               : 'border-purple-500/40 hover:border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:shadow-2xl'
+                           }`}
+                           onClick={() => !isOutOfStock && openDishDetails(food)}
                         >
                           {/* Ribbon */}
                           {food.comboStatus && (
-                            <div className="absolute top-0 right-0 z-10 overflow-hidden w-28 h-28 pointer-events-none">
-                              <div className="absolute top-4 -right-8 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-extrabold text-[8px] uppercase tracking-widest py-1 w-32 text-center rotate-45 shadow-md">
+                            <div className="absolute top-0 right-0 z-10 overflow-hidden w-20 h-20 sm:w-28 sm:h-28 pointer-events-none">
+                              <div className="absolute top-2 -right-8 sm:top-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-extrabold text-[7px] sm:text-[8px] uppercase tracking-widest py-0.5 sm:py-1 w-24 sm:w-32 text-center rotate-45 shadow-md">
                                 {food.comboStatus}
                               </div>
                             </div>
                           )}
 
-                          <div className={`relative h-48 w-full overflow-hidden ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
+                          <div className={`relative h-28 sm:h-44 w-full overflow-hidden ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
                             <img src={food.image} alt={food.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             
                             {/* Savings Badge */}
                             {savings > 0 && (
-                              <div className="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow-lg animate-pulse flex items-center gap-1">
+                              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-extrabold text-[8px] sm:text-[10px] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full uppercase tracking-wider shadow-lg animate-pulse flex items-center gap-1">
                                 🔥 Save ${savings.toFixed(2)}
                               </div>
                             )}
 
-                            <div className="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-wider">
-                              🍱 Combo Bundle
+                            <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[9px] font-bold text-white uppercase tracking-wider">
+                              🍱 Combo
                             </div>
                           </div>
 
-                          <div className={`p-5 flex-1 flex flex-col justify-between ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
+                          <div className={`p-3 sm:p-5 flex-1 flex flex-col justify-between ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
                             <div>
-                              <h3 className="font-extrabold text-base text-[#1A1A1A] dark:text-white group-hover:text-purple-500 transition-colors duration-300">{food.name}</h3>
+                              <h3 className="font-extrabold text-xs sm:text-base text-[#1A1A1A] dark:text-white group-hover:text-purple-500 transition-colors duration-300 line-clamp-1 sm:line-clamp-none">{food.name}</h3>
                               
                               {/* Bundle Preview */}
-                              <div className="mt-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-100 dark:border-slate-805">
+                              <div className="mt-2 bg-slate-50 dark:bg-slate-900/60 rounded-xl p-2 sm:p-3 border border-slate-100 dark:border-slate-805 hidden sm:block">
                                 <span className="text-[9px] font-bold text-slate-450 uppercase tracking-wider block mb-1">Included in bundle:</span>
                                 <div className="space-y-1">
                                   {resolvedItems.map(item => (
@@ -462,24 +463,24 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
                                 </div>
                               </div>
 
-                              <p className={`text-xs mt-2.5 font-bold ${isLowStock ? 'text-orange-500 animate-pulse' : 'text-slate-450'}`}>
-                                {isOutOfStock ? 'Out of Stock' : isLowStock ? `⚠️ Only ${food.stock} combos left!` : `${food.stock} packages available`}
+                              <p className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2.5 font-bold ${isLowStock ? 'text-orange-500 animate-pulse' : 'text-slate-455'}`}>
+                                {isOutOfStock ? 'Out of Stock' : isLowStock ? `⚠️ Only ${food.stock} left!` : `${food.stock} available`}
                               </p>
                             </div>
 
-                            <div className="flex items-center justify-between mt-5">
-                              <div className="flex items-baseline gap-1.5">
-                                <span className="text-xl font-extrabold text-purple-600 dark:text-purple-400">${food.price.toFixed(2)}</span>
+                            <div className="flex items-center justify-between mt-3 sm:mt-5">
+                              <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+                                <span className="text-sm sm:text-xl font-extrabold text-purple-600 dark:text-purple-400">${food.price.toFixed(2)}</span>
                                 {originalSum > food.price && (
-                                  <span className="text-xs font-bold text-slate-400 line-through">${originalSum.toFixed(2)}</span>
+                                  <span className="text-[9px] sm:text-xs font-bold text-slate-400 line-through">${originalSum.toFixed(2)}</span>
                                 )}
                               </div>
                               {!isOutOfStock && (
                                 <button 
-                                  className="p-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all duration-300 shadow-md shadow-purple-500/20"
+                                  className="p-1.5 sm:p-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all duration-300 shadow-md shadow-purple-500/20"
                                   onClick={(e) => { e.stopPropagation(); addToCart(food); }}
                                 >
-                                  <Plus size={16} />
+                                  <Plus size={14} />
                                 </button>
                               )}
                             </div>
@@ -505,26 +506,23 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
                         }`}
                         onClick={() => !isOutOfStock && openDishDetails(food)}
                       >
-                        <div className={`relative h-44 w-full overflow-hidden transition-all duration-300 ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
+                        <div className={`relative h-28 sm:h-44 w-full overflow-hidden transition-all duration-300 ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
                           <img src={food.image} alt={food.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute top-3 right-3 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-wider">
-                            {food.category === 'Beverage' ? '🥤 Beverage' : 
-                             food.category === 'Snacks' ? '🍟 Snacks' : 
-                             food.category === 'Starter' || food.category === 'Main Course' ? '🍲 ' + food.category : 
-                             food.category}
+                          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-slate-950/80 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] font-bold text-white uppercase tracking-wider max-w-[80px] sm:max-w-none truncate">
+                            {food.category}
                           </div>
                           {isLowStock && (
-                            <div className="absolute top-3 left-3 bg-orange-500 text-white font-extrabold text-[9px] px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md animate-pulse">
+                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-orange-500 text-white font-extrabold text-[8px] sm:text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md animate-pulse">
                               ⚠️ Low Stock
                             </div>
                           )}
                         </div>
-                        <div className={`p-5 flex-1 flex flex-col justify-between transition-all duration-300 ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
+                        <div className={`p-3 sm:p-5 flex-1 flex flex-col justify-between transition-all duration-300 ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
                           <div>
-                            <h3 className="font-extrabold text-base text-[#1A1A1A] dark:text-white group-hover:text-orange-500 transition-colors duration-300">{food.name}</h3>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
+                            <h3 className="font-extrabold text-xs sm:text-base text-[#1A1A1A] dark:text-white group-hover:text-orange-500 transition-colors duration-300 line-clamp-1 sm:line-clamp-none">{food.name}</h3>
+                            <div className="flex flex-wrap gap-1 mt-1 sm:mt-1.5">
                               {food.dietary && food.dietary !== 'None' && (
-                                <span className={`px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase border flex items-center gap-1 shadow-sm ${
+                                <span className={`px-1.5 py-0.5 rounded text-[7px] sm:text-[8px] font-extrabold uppercase border flex items-center gap-0.5 shadow-sm ${
                                   food.dietary === 'Veg' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                                   food.dietary === 'Vegan' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
                                   food.dietary === 'Non Veg' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
@@ -539,32 +537,19 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
                                    food.dietary === 'Seafood' ? '🦐 Seafood' : food.dietary}
                                 </span>
                               )}
-                              
-                              {['Beverage', 'Snacks', 'Starter', 'Chats', 'Street Food'].includes(food.category) && (
-                                <span className="px-2 py-0.5 rounded-md text-[8px] font-extrabold uppercase border flex items-center gap-1 shadow-sm bg-blue-500/10 text-blue-500 border-blue-500/20">
-                                  {food.category === 'Beverage' ? '🥤 Beverage' : 
-                                   food.category === 'Snacks' || food.category === 'Chats' || food.category === 'Street Food' ? '🍟 ' + food.category : 
-                                   '🍲 ' + food.category}
-                                </span>
-                              )}
-                              {(food.specialBadges || []).map(badge => (
-                                <span key={badge} className="bg-purple-500/10 text-purple-500 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border border-purple-500/20">
-                                  ★ {badge}
-                                </span>
-                              ))}
                             </div>
-                            <p className={`text-xs mt-1.5 font-bold ${isLowStock ? 'text-orange-500 animate-pulse' : 'text-slate-450'}`}>
-                              {isOutOfStock ? 'Out of Stock' : isLowStock ? `⚠️ Only ${food.stock} left!` : `${food.stock} servings available`}
+                            <p className={`text-[10px] sm:text-xs mt-1.5 font-bold ${isLowStock ? 'text-orange-500 animate-pulse' : 'text-slate-455'}`}>
+                              {isOutOfStock ? 'Out of Stock' : isLowStock ? `⚠️ Only ${food.stock} left!` : `${food.stock} servings`}
                             </p>
                           </div>
-                          <div className="flex items-center justify-between mt-5">
-                            <span className="text-lg font-extrabold text-orange-500">${food.price.toFixed(2)}</span>
+                          <div className="flex items-center justify-between mt-3 sm:mt-5">
+                            <span className="text-sm sm:text-lg font-extrabold text-orange-500">${food.price.toFixed(2)}</span>
                             {!isOutOfStock && (
                               <button 
-                                className="p-2.5 bg-slate-100 hover:bg-orange-500 hover:text-white text-slate-650 rounded-full transition-all duration-300 dark:bg-slate-800 dark:text-slate-350"
+                                className="p-1.5 sm:p-2.5 bg-slate-100 hover:bg-orange-500 hover:text-white text-slate-650 rounded-full transition-all duration-300 dark:bg-slate-800 dark:text-slate-350"
                                 onClick={(e) => { e.stopPropagation(); addToCart(food); }}
                               >
-                                <Plus size={16} />
+                                <Plus size={14} />
                               </button>
                             )}
                           </div>
@@ -573,7 +558,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
                         {/* Out of Stock Overlay */}
                         {isOutOfStock && (
                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 dark:bg-black/40 z-10">
-                            <div className="bg-red-500/90 text-white font-extrabold text-xs px-4 py-2 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1.5">
+                            <div className="bg-red-500/90 text-white font-extrabold text-[10px] px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg flex items-center gap-1">
                               <span>❌ Out of Stock</span>
                             </div>
                           </div>
@@ -587,7 +572,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
           </div>
 
           {/* Floating Checkout Summary Panel */}
-          <div className="glass w-96 flex flex-col p-6 h-full shrink-0 border border-white/20">
+          <div className="glass w-96 flex flex-col p-6 h-full shrink-0 border border-white/20 hidden lg:flex">
             <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
               <h2 className="font-extrabold text-lg flex items-center gap-2 text-[#1A1A1A] dark:text-white">
                 <ShoppingCart className={orderType === 'parcel' ? 'text-purple-500' : 'text-orange-500'} size={20} />
@@ -620,7 +605,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
                     animate={{ opacity: 1 }}
                     className="h-full flex flex-col items-center justify-center text-slate-400 gap-3"
                   >
-                    <ShoppingCart className="stroke-[1.5] text-slate-300 dark:text-slate-850" size={40} />
+                    <ShoppingCart className="stroke-[1.5] text-slate-350 dark:text-slate-850" size={40} />
                     <p className="text-sm font-semibold">Cart is currently empty</p>
                   </motion.div>
                 ) : (
@@ -691,6 +676,142 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
               </button>
             </div>
           </div>
+
+          {/* Mobile Floating Cart Trigger */}
+          {cart.length > 0 && (
+            <div className="lg:hidden fixed bottom-4 left-4 right-4 z-40">
+              <button
+                onClick={() => setShowMobileCart(true)}
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-650 hover:to-amber-650 text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg flex items-center justify-between transition-transform transform active:scale-95 shadow-orange-500/30"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/25 px-2.5 py-1 rounded-full text-xs font-extrabold">
+                    {cart.reduce((sum, item) => sum + item.qty, 0)}
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider">View Order Cart</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-extrabold">${total.toFixed(2)}</span>
+                  <ShoppingCart size={14} />
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* Mobile Drawer */}
+          <AnimatePresence>
+            {showMobileCart && (
+              <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden flex justify-end">
+                <motion.div
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="w-full sm:w-[450px] bg-slate-50 dark:bg-slate-950 h-full flex flex-col p-6 shadow-2xl relative"
+                >
+                  <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <h2 className="font-extrabold text-base flex items-center gap-2 text-[#1A1A1A] dark:text-white">
+                      <ShoppingCart className={orderType === 'parcel' ? 'text-purple-500' : 'text-orange-500'} size={18} />
+                      {orderType === 'parcel' ? 'Parcel Cart' : `Table ${tableNo} Cart`}
+                    </h2>
+                    <button
+                      onClick={() => setShowMobileCart(false)}
+                      className="p-2 text-slate-450 hover:text-slate-800 dark:hover:text-white"
+                      aria-label="Close cart drawer"
+                    >
+                      <XCircle size={22} />
+                    </button>
+                  </div>
+
+                  {orderType === 'parcel' && (
+                    <div className="py-3 border-b border-slate-200 dark:border-slate-800 space-y-3">
+                      <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-800">
+                        <User size={14} className="text-slate-400" />
+                        <input type="text" placeholder="Customer Name" value={customerName} onChange={e => setCustomerName(e.target.value)} className="bg-transparent border-none focus:outline-none text-xs font-bold w-full" required />
+                      </div>
+                      <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-800">
+                        <Phone size={14} className="text-slate-400" />
+                        <input type="tel" placeholder="Phone Number" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} className="bg-transparent border-none focus:outline-none text-xs font-bold w-full" required />
+                      </div>
+                      <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 border border-slate-100 dark:border-slate-800">
+                        <Clock size={14} className="text-slate-400" />
+                        <input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)} className="bg-transparent border-none focus:outline-none text-xs font-bold w-full" required />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1 scrollbar-thin">
+                    {cart.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
+                        <ShoppingCart className="stroke-[1.5] text-slate-350 dark:text-slate-850" size={40} />
+                        <p className="text-sm font-semibold">Cart is currently empty</p>
+                      </div>
+                    ) : (
+                      cart.map(item => (
+                        <div key={item.id} className="flex items-center justify-between gap-4 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-805/40">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-extrabold text-xs truncate text-[#1A1A1A] dark:text-white">{item.name}</h4>
+                            <span className="text-xs font-bold text-orange-500 mt-1 block">${(item.price * item.qty).toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-150 dark:border-slate-750 px-2.5 py-1.5 rounded-full">
+                            <button onClick={() => updateQty(item.id, -1)} className="text-slate-400 hover:text-slate-800 dark:hover:text-white"><Minus size={12} /></button>
+                            <span className="text-xs font-extrabold w-4 text-center">{item.qty}</span>
+                            <button onClick={() => updateQty(item.id, 1)} className="text-slate-400 hover:text-slate-800 dark:hover:text-white"><Plus size={12} /></button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-205 dark:border-slate-800 space-y-4 mt-auto">
+                    <div>
+                      <label className="text-xs font-extrabold text-slate-450 block mb-1.5">Special Chef Instructions</label>
+                      <textarea 
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        placeholder="E.g., Medium rare, allergy warning..."
+                        rows={2}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-slate-450 font-bold">
+                        <span>Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-slate-450 font-bold">
+                        <span>GST (5%)</span>
+                        <span>${tax.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-base font-extrabold border-t border-dashed border-slate-200 dark:border-slate-800 pt-2.5">
+                        <span>Total Amount</span>
+                        <span className="text-orange-500">${total.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        handleSendOrder();
+                        setShowMobileCart(false);
+                      }}
+                      disabled={cart.length === 0 || sending || (orderType === 'parcel' && (!customerName || !customerPhone))}
+                      className={`w-full btn-premium ${orderType === 'parcel' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 shadow-glow-purple' : 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-glow-orange'} hover:opacity-90 text-white rounded-2xl py-3.5 flex items-center justify-center gap-2 font-bold disabled:opacity-50 disabled:pointer-events-none`}
+                    >
+                      {sending ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <>
+                          <Send size={16} />
+                          Send Order ({cart.reduce((sum, item) => sum + item.qty, 0)} Items)
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
         </div>
       ) : (
         /* ACTIVE & PENDING ORDER STATUS MONITOR */

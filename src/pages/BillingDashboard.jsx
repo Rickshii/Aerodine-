@@ -231,10 +231,10 @@ export default function BillingDashboard() {
   });
 
   return (
-    <div className="h-full flex gap-8 relative overflow-hidden text-slate-800 dark:text-slate-100">
-      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 pr-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div className="flex border-b border-slate-200 dark:border-slate-800 pb-px gap-6">
+    <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-8 relative overflow-hidden text-slate-800 dark:text-slate-100">
+      <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 pr-0 lg:pr-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 lg:mb-6 overflow-x-auto scrollbar-none">
+          <div className="flex border-b border-slate-200 dark:border-slate-800 pb-px gap-4 lg:gap-6 min-w-max">
             <button 
               onClick={() => setBillingTab('active')}
               className={`pb-3 font-extrabold text-xs uppercase tracking-wider border-b-2 transition-all ${billingTab === 'active' ? 'border-orange-500 text-orange-500' : 'border-transparent text-slate-555'}`}
@@ -258,7 +258,7 @@ export default function BillingDashboard() {
                 <Sparkles size={18} className="text-orange-500" />
                 Dining Hall Table Occupancy Grid
               </h2>
-              <div className="grid grid-cols-4 sm:grid-cols-8 gap-4">
+              <div className="flex sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-none snap-x">
                 {mockTables.map(t => {
                   let statusColor = "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/25";
                   if (t.status === 'occupied') statusColor = "bg-coral-500/10 text-coral-655 dark:text-coral-450 border border-coral-500/25 animate-pulse";
@@ -271,7 +271,7 @@ export default function BillingDashboard() {
                       key={t.num}
                       disabled={t.status !== 'ready'}
                       onClick={() => activeOrder && handleSelectOrder(activeOrder)}
-                      className={`py-4 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-extrabold ${statusColor} ${t.status === 'ready' ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-not-allowed opacity-75'}`}
+                      className={`py-3 sm:py-4 px-4 sm:px-0 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all text-[10px] sm:text-xs font-extrabold shrink-0 snap-center min-w-[70px] sm:min-w-0 ${statusColor} ${t.status === 'ready' ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-not-allowed opacity-75'}`}
                     >
                       <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">T #{t.num}</span>
                       <span className="capitalize">{t.status === 'free' ? 'Available' : t.status}</span>
@@ -527,8 +527,15 @@ export default function BillingDashboard() {
       </div>
 
       {/* POS invoice & QR Code System panel */}
-      <div className="glass w-96 flex flex-col p-6 h-full shrink-0 border border-white/20">
-        <h2 className="font-extrabold text-lg pb-4 border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white uppercase tracking-wider">POS Checkout</h2>
+      <div className={`glass flex flex-col p-4 lg:p-6 border border-white/20 transition-all z-40 ${selectedOrder ? 'fixed inset-0 w-full h-[100dvh] lg:static lg:w-96 lg:h-full shrink-0 bg-white/95 dark:bg-slate-950/95 lg:bg-transparent lg:dark:bg-transparent backdrop-blur-xl lg:backdrop-blur-md overflow-hidden' : 'hidden lg:flex lg:w-96 h-full shrink-0'}`}>
+        <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <h2 className="font-extrabold text-lg text-slate-900 dark:text-white uppercase tracking-wider">POS Checkout</h2>
+          {selectedOrder && (
+            <button onClick={() => { setSelectedOrder(null); setShowQR(false); }} className="lg:hidden p-2 bg-slate-100 dark:bg-slate-800 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-white">
+              <X size={20} />
+            </button>
+          )}
+        </div>
 
         <div className="flex-1 overflow-y-auto py-6 space-y-6">
           {selectedOrder ? (
@@ -691,7 +698,7 @@ export default function BillingDashboard() {
         </div>
 
         {selectedOrder && (
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4 shrink-0 pb-4 lg:pb-0">
             <div>
               <label className="text-xs font-bold text-slate-455 block mb-2">Payment Method</label>
               <div className="grid grid-cols-3 gap-3">
