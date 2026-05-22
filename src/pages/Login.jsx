@@ -51,7 +51,7 @@ export default function Login() {
 
  <div className="glass w-full max-w-md p-8 relative z-10 border border-[var(--border-color)] shadow-2xl">
  <div className="text-center mb-8">
- <div className="w-16 h-16 bg-[var(--color-primary)] rounded-2xl mx-auto flex items-center justify-center text-[var(--color-text-main)] font-bold text-2xl shadow-lg shadow-rose-600/30 mb-4">
+ <div className="w-16 h-16 bg-[var(--color-primary)] rounded-2xl mx-auto flex items-center justify-center text-[#ffffff] font-bold text-2xl shadow-lg shadow-glow-primary mb-4">
  AD
  </div>
  <h2 className="text-2xl font-bold tracking-tight text-[var(--color-text-main)]">AeroDine SaaS</h2>
@@ -67,7 +67,7 @@ export default function Login() {
  type="button"
  key={r.value}
  onClick={() => setRole(r.value)}
- className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'glass-card text-gray-100 border-white font-bold' : 'glass-card/50 text-[var(--color-text-muted)] border-[var(--border-color)]/50 hover:glass-card'}`}
+ className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'bg-[var(--color-primary)] text-[#ffffff] border-[var(--color-primary)] font-bold shadow-glow-primary' : 'glass-card/50 text-[var(--color-text-muted)] border-[var(--border-color)]/50 hover:glass-card'}`}
  >
  {r.label}
  </button>
@@ -79,7 +79,7 @@ export default function Login() {
  type="button"
  key={r.value}
  onClick={() => setRole(r.value)}
- className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'glass-card text-gray-100 border-white font-bold' : 'glass-card/50 text-[var(--color-text-muted)] border-[var(--border-color)]/50 hover:glass-card'}`}
+ className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'bg-[var(--color-primary)] text-[#ffffff] border-[var(--color-primary)] font-bold shadow-glow-primary' : 'glass-card/50 text-[var(--color-text-muted)] border-[var(--border-color)]/50 hover:glass-card'}`}
  >
  {r.label}
  </button>
@@ -118,10 +118,10 @@ export default function Login() {
  <button
  type="submit"
  disabled={loading}
- className="w-full btn-premium btn-premium rounded-2xl py-4 shadow-lg shadow-rose-600/20 font-bold transition-all flex items-center justify-center gap-2"
+ className="w-full btn-premium rounded-2xl py-4 shadow-lg shadow-glow-primary font-bold transition-all flex items-center justify-center gap-2"
  >
  {loading ? (
- <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+ <div className="w-5 h-5 border-2 border-[var(--bg-main)] border-t-transparent rounded-full animate-spin"></div>
  ) : (
  <>
  <ShieldCheck size={20} />
