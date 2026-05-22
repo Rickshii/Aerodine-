@@ -227,7 +227,7 @@ export default function BillingDashboard() {
  });
 
  return (
- <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-8 relative overflow-hidden text-gray-200 ">
+ <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-8 relative overflow-hidden text-[var(--color-text-main)] ">
  <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 pr-0 lg:pr-2">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 lg:mb-6 overflow-x-auto scrollbar-none">
  <div className="flex border-b border-[var(--border-color)] pb-px gap-4 lg:gap-6 min-w-max">
@@ -239,7 +239,7 @@ export default function BillingDashboard() {
  </button>
  <button 
  onClick={() => setBillingTab('history')}
- className={`pb-3 font-extrabold text-xs uppercase tracking-wider border-b-2 transition-all ${billingTab === 'history' ? 'border-[var(--color-secondary)] text-rose-400' : 'border-transparent text-slate-555'}`}
+ className={`pb-3 font-extrabold text-xs uppercase tracking-wider border-b-2 transition-all ${billingTab === 'history' ? 'border-[var(--color-secondary)] text-rose-500' : 'border-transparent text-slate-555'}`}
  >
  Settled Billing History ({bills.length})
  </button>
@@ -249,7 +249,7 @@ export default function BillingDashboard() {
  {billingTab === 'active' ? (
  <>
  {/* Table Occupancy Status System */}
- <div className="glass p-6 border border-white/20 ">
+ <div className="glass p-6 border border-[var(--border-color)] ">
  <h2 className="text-base font-extrabold mb-4 flex items-center gap-2 text-gray-100 uppercase tracking-wider">
  <Sparkles size={18} className="text-[var(--color-primary)]" />
  Dining Hall Table Occupancy Grid
@@ -317,7 +317,7 @@ export default function BillingDashboard() {
  <span className="font-extrabold text-gray-100 text-xs">
  {o.orderType === 'parcel' ? `Parcel ${o.parcelToken}` : `Table #${o.table}`} ({o.orderNo})
  </span>
- <p className="text-[10px] text-slate-450 mt-1 font-bold">Reason: "{o.cancelReason || 'Customer changed mind'}"</p>
+ <p className="text-[10px] text-[var(--color-text-muted)] mt-1 font-bold">Reason: "{o.cancelReason || 'Customer changed mind'}"</p>
  </div>
  <span className="text-[9px] uppercase tracking-wider font-extrabold bg-[var(--color-primary)] text-[var(--color-text-main)] px-2 py-0.5 rounded-full shrink-0">
  Cancel Req
@@ -340,7 +340,7 @@ export default function BillingDashboard() {
  rejectOrderCancellation(o.orderNo || o.id, 'Cashier');
  toast.success(`Cancellation request for Table #${o.table} rejected!`);
  }}
- className="flex-1 py-1.5 glass-card text-gray-300 rounded-xl text-[10px] font-extrabold uppercase hover:bg-gray-700 transition-all border border-[var(--border-color)] cursor-pointer"
+ className="flex-1 py-1.5 glass-card text-[var(--color-text-muted)] rounded-xl text-[10px] font-extrabold uppercase hover:bg-[var(--bg-glass)] transition-all border border-[var(--border-color)] cursor-pointer"
  >
  Reject Request
  </button>
@@ -356,7 +356,7 @@ export default function BillingDashboard() {
  <div className="flex items-center justify-between mb-4">
  <div>
  <h2 className="text-lg font-extrabold tracking-tight text-gray-100 uppercase">Active Bills Feed</h2>
- <p className="text-xs text-slate-450 font-bold">Incoming kitchen-cleared tables ready for payment processing</p>
+ <p className="text-xs text-[var(--color-text-muted)] font-bold">Incoming kitchen-cleared tables ready for payment processing</p>
  </div>
  </div>
 
@@ -380,7 +380,7 @@ export default function BillingDashboard() {
  exit={{ opacity: 0, y: -10 }}
  key={order.id || order.orderNo}
  onClick={() => handleSelectOrder(order)}
- className={`glass p-5 flex items-center justify-between cursor-pointer border transition-all duration-300 hover:shadow-lg ${selectedOrder?.orderNo === order.orderNo ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 ' : 'border-white/20 '}`}
+ className={`glass p-5 flex items-center justify-between cursor-pointer border transition-all duration-300 hover:shadow-lg ${selectedOrder?.orderNo === order.orderNo ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 ' : 'border-[var(--border-color)] '}`}
  >
  <div className="flex items-center gap-5">
  <div className={`w-14 h-14 font-extrabold rounded-2xl flex items-center justify-center text-lg ${order.orderType === 'parcel' ? 'bg-[var(--color-primary)]/10 text-purple-550 ' : 'bg-[var(--color-primary)]/10 text-orange-550 '}`}>
@@ -447,7 +447,7 @@ export default function BillingDashboard() {
  className={`flex items-center justify-center gap-2 font-bold text-xs px-5 py-2.5 rounded-full transition-all shadow-md ${
  isExporting
  ? 'bg-rose-400 text-[var(--color-text-main)] animate-pulse cursor-wait'
- : 'bg-[#111111] text-[var(--color-text-main)] hover:shadow-lg hover:scale-105 active:scale-95'
+ : 'bg-[var(--bg-panel)] text-[var(--color-text-main)] hover:shadow-lg hover:scale-105 active:scale-95'
  }`}
  >
  <Download size={14} className={isExporting ? 'animate-bounce' : ''} />
@@ -457,7 +457,7 @@ export default function BillingDashboard() {
  </div>
 
  {/* History Table */}
- <div className="glass overflow-hidden border border-white/20 flex-1 overflow-y-auto">
+ <div className="glass overflow-hidden border border-[var(--border-color)] flex-1 overflow-y-auto">
  <table className="w-full text-left text-xs font-semibold text-[var(--color-text-muted)] ">
  <thead className="sticky top-0 z-10">
  <tr className="border-b border-[var(--border-color)] bg-[var(--bg-panel)]/90 backdrop-blur-sm">
@@ -505,7 +505,7 @@ export default function BillingDashboard() {
  <td className="py-4 px-6 text-right">
  <button
  onClick={() => setViewingPastInvoice(bill)}
- className="p-2 glass-card hover:bg-gray-700 hover:text-[var(--color-primary)] rounded-xl text-slate-650 flex items-center justify-center gap-1.5 ml-auto text-[10px] font-extrabold transition-colors"
+ className="p-2 glass-card hover:bg-[var(--bg-glass)] hover:text-[var(--color-primary)] rounded-xl text-slate-650 flex items-center justify-center gap-1.5 ml-auto text-[10px] font-extrabold transition-colors"
  >
  <Eye size={12} />
  View
@@ -523,7 +523,7 @@ export default function BillingDashboard() {
  </div>
 
  {/* POS invoice & QR Code System panel */}
- <div className={`glass flex flex-col p-4 lg:p-6 border border-white/20 transition-all z-40 ${selectedOrder ? 'fixed inset-0 w-full h-[100dvh] lg:static lg:w-96 lg:h-full shrink-0 glass-card/95 /95 lg:bg-transparent lg: backdrop-blur-xl lg:backdrop-blur-md overflow-hidden' : 'hidden lg:flex lg:w-96 h-full shrink-0'}`}>
+ <div className={`glass flex flex-col p-4 lg:p-6 border border-[var(--border-color)] transition-all z-40 ${selectedOrder ? 'fixed inset-0 w-full h-[100dvh] lg:static lg:w-96 lg:h-full shrink-0 glass-card/95 /95 lg:bg-transparent lg: backdrop-blur-xl lg:backdrop-blur-md overflow-hidden' : 'hidden lg:flex lg:w-96 h-full shrink-0'}`}>
  <div className="flex justify-between items-center pb-4 border-b border-[var(--border-color)] shrink-0">
  <h2 className="font-extrabold text-lg text-gray-100 uppercase tracking-wider">POS Checkout</h2>
  {selectedOrder && (
@@ -540,7 +540,7 @@ export default function BillingDashboard() {
  {/* Thermal Invoice preview strip */}
  <div className="glass-card text-black p-6 border-t-8 border-gray-300 font-mono text-[11px] space-y-4 shadow-xl relative overflow-hidden rounded-b-xl border border-[var(--border-color)]">
  <div className="text-center space-y-1">
- <h3 className="font-bold text-sm tracking-widest text-[#111111]">AERODINE CAFE</h3>
+ <h3 className="font-bold text-sm tracking-widest text-[var(--bg-main)]">AERODINE CAFE</h3>
  <p>123 Luxury Avenue, Downtown</p>
  <p>TEL: (555) 0199-8822</p>
  <p className="pt-2 border-b border-dashed border-slate-450 pb-2">INVOICE PREVIEW</p>
@@ -627,11 +627,11 @@ export default function BillingDashboard() {
  <div className={`p-4 rounded-2xl border transition-all ${selectedOrder.balanceParcelStatus ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30' : 'bg-[var(--bg-panel)] border-[var(--border-color)] '}`}>
  <label className="flex items-center justify-between cursor-pointer group relative overflow-hidden">
  <div className="flex items-center gap-3 relative z-10">
- <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${selectedOrder.balanceParcelStatus ? 'bg-[var(--color-primary)] text-[var(--color-text-main)] shadow-glow-secondary' : 'bg-gray-700 text-[var(--color-text-muted)]'}`}>
+ <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${selectedOrder.balanceParcelStatus ? 'bg-[var(--color-primary)] text-[var(--color-text-main)] shadow-glow-secondary' : 'bg-[var(--bg-glass)] text-[var(--color-text-muted)]'}`}>
  {selectedOrder.balanceParcelStatus === 'packed' || selectedOrder.balanceParcelStatus === 'ready_for_pickup' ? <ShoppingBag size={20} /> : <Package size={20} />}
  </div>
  <div>
- <h4 className={`font-extrabold text-sm ${selectedOrder.balanceParcelStatus ? 'text-[var(--color-primary)] ' : 'text-gray-300 '}`}>
+ <h4 className={`font-extrabold text-sm ${selectedOrder.balanceParcelStatus ? 'text-[var(--color-primary)] ' : 'text-[var(--color-text-muted)] '}`}>
  Pack Remaining Food
  </h4>
  {selectedOrder.balanceParcelStatus ? (
@@ -688,7 +688,7 @@ export default function BillingDashboard() {
  ) : (
  <div className="h-full flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-3 py-16">
  <Printer className="stroke-[1.5] text-slate-350 " size={40} />
- <p className="text-sm font-bold text-center text-slate-450">Select an active ready table from the grid to checkout</p>
+ <p className="text-sm font-bold text-center text-[var(--color-text-muted)]">Select an active ready table from the grid to checkout</p>
  </div>
  )}
  </div>
@@ -766,7 +766,7 @@ export default function BillingDashboard() {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: 20 }}
- className="glass max-w-sm w-full p-6 border border-white/20 relative flex flex-col gap-6"
+ className="glass max-w-sm w-full p-6 border border-[var(--border-color)] relative flex flex-col gap-6"
  >
  <button 
  onClick={() => setViewingPastInvoice(null)}
@@ -867,7 +867,7 @@ export default function BillingDashboard() {
  </button>
  <button
  onClick={() => setViewingPastInvoice(null)}
- className="btn-premium bg-[#111111] text-[#F8F5F0] hover:bg-[#121212] rounded-xl py-3 text-xs font-bold px-4"
+ className="btn-premium bg-[var(--bg-panel)] text-[var(--color-text-main)] hover:bg-[var(--bg-panel)] rounded-xl py-3 text-xs font-bold px-4"
  >
  Close
  </button>
@@ -886,7 +886,7 @@ export default function BillingDashboard() {
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: 20 }}
- className="glass max-w-md w-full p-6 border border-white/20 relative flex flex-col gap-5 text-gray-100 "
+ className="glass max-w-md w-full p-6 border border-[var(--border-color)] relative flex flex-col gap-5 text-gray-100 "
  >
  <div className="text-center space-y-2">
  <AlertTriangle className="text-red-500 mx-auto" size={40} />
@@ -929,7 +929,7 @@ export default function BillingDashboard() {
  </button>
  <button
  onClick={() => setCancellingOrder(null)}
- className="px-5 py-3 border border-[var(--border-color)] text-gray-300 rounded-xl text-xs font-bold hover:glass-card transition-all"
+ className="px-5 py-3 border border-[var(--border-color)] text-[var(--color-text-muted)] rounded-xl text-xs font-bold hover:glass-card transition-all"
  >
  Cancel
  </button>

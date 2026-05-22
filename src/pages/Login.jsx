@@ -35,7 +35,7 @@ export default function Login() {
  };
 
  const presetRoles = [
- { label: 'Waiter', value: 'waiter', color: 'bg-rose-400/10 text-rose-400 border-[var(--color-secondary)]/20' },
+ { label: 'Waiter', value: 'waiter', color: 'bg-rose-500/10 text-rose-500 border-[var(--color-secondary)]/20' },
  { label: 'Chef', value: 'chef', color: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20' },
  { label: 'Cashier', value: 'cashier', color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
  { label: 'Manager', value: 'manager', color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' },
@@ -49,7 +49,7 @@ export default function Login() {
  <div className="absolute top-0 left-0 w-96 h-96 bg-[var(--color-primary)]/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
  <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[var(--color-primary)]/10 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
 
- <div className="glass w-full max-w-md p-8 relative z-10 border border-white/10 shadow-2xl">
+ <div className="glass w-full max-w-md p-8 relative z-10 border border-[var(--border-color)] shadow-2xl">
  <div className="text-center mb-8">
  <div className="w-16 h-16 bg-[var(--color-primary)] rounded-2xl mx-auto flex items-center justify-center text-[var(--color-text-main)] font-bold text-2xl shadow-lg shadow-rose-600/30 mb-4">
  AD
@@ -60,14 +60,14 @@ export default function Login() {
 
  <form onSubmit={handleLogin} className="space-y-6">
  <div>
- <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">Preset Demo Roles</label>
+ <label className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Preset Demo Roles</label>
  <div className="grid grid-cols-3 gap-2">
  {presetRoles.slice(0, 3).map((r) => (
  <button
  type="button"
  key={r.value}
  onClick={() => setRole(r.value)}
- className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'glass-card text-gray-100 border-white font-bold' : 'glass-card/50 text-gray-300 border-[var(--border-color)]/50 hover:glass-card'}`}
+ className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'glass-card text-gray-100 border-white font-bold' : 'glass-card/50 text-[var(--color-text-muted)] border-[var(--border-color)]/50 hover:glass-card'}`}
  >
  {r.label}
  </button>
@@ -79,7 +79,7 @@ export default function Login() {
  type="button"
  key={r.value}
  onClick={() => setRole(r.value)}
- className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'glass-card text-gray-100 border-white font-bold' : 'glass-card/50 text-gray-300 border-[var(--border-color)]/50 hover:glass-card'}`}
+ className={`py-2 px-3 text-xs font-medium rounded-xl border transition-all ${role === r.value ? 'glass-card text-gray-100 border-white font-bold' : 'glass-card/50 text-[var(--color-text-muted)] border-[var(--border-color)]/50 hover:glass-card'}`}
  >
  {r.label}
  </button>
@@ -88,7 +88,7 @@ export default function Login() {
  </div>
 
  <div className="space-y-2">
- <label className="text-sm font-semibold text-gray-300">Email Address</label>
+ <label className="text-sm font-semibold text-[var(--color-text-muted)]">Email Address</label>
  <div className="relative">
  <Mail className="absolute left-3 top-3.5 text-[var(--color-text-muted)]" size={18} />
  <input
@@ -102,7 +102,7 @@ export default function Login() {
  </div>
 
  <div className="space-y-2">
- <label className="text-sm font-semibold text-gray-300">Password</label>
+ <label className="text-sm font-semibold text-[var(--color-text-muted)]">Password</label>
  <div className="relative">
  <Lock className="absolute left-3 top-3.5 text-[var(--color-text-muted)]" size={18} />
  <input

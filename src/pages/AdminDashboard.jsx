@@ -51,16 +51,16 @@ export default function AdminDashboard() {
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
  <div>
  <h1 className="text-2xl font-extrabold tracking-tight text-[var(--color-text-main)] uppercase">AeroDine Super Admin Console</h1>
- <p className="text-xs text-slate-450 font-bold">Multi-branch catalog parameters, global ledger audits and AI predictions</p>
+ <p className="text-xs text-[var(--color-text-muted)] font-bold">Multi-branch catalog parameters, global ledger audits and AI predictions</p>
  </div>
 
  <div className="flex gap-3">
- <button className="btn-premium border border-[var(--border-color)] glass-card text-gray-300 py-2.5 px-5 text-xs font-extrabold rounded-full transition-all">
+ <button className="btn-premium border border-[var(--border-color)] glass-card text-[var(--color-text-muted)] py-2.5 px-5 text-xs font-extrabold rounded-full transition-all">
  System Normal (32ms)
  </button>
  <button
  onClick={handleExportCSV}
- className="btn-premium bg-[#111111] text-[var(--color-text-main)] py-2.5 px-5 text-xs font-extrabold rounded-full shadow-md hover:scale-105 transition-all"
+ className="btn-premium bg-[var(--bg-panel)] text-[var(--color-text-main)] py-2.5 px-5 text-xs font-extrabold rounded-full shadow-md hover:scale-105 transition-all"
  >
  Export Global Ledgers
  </button>
@@ -71,11 +71,11 @@ export default function AdminDashboard() {
  <div className="glass p-6 border border-[var(--color-secondary)]/30 bg-gradient-to-r from-rose-400/5 to-[#FF8A3D]/5 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 rounded-3xl">
  <div className="absolute top-0 right-0 w-64 h-64 bg-rose-400/5 rounded-full blur-3xl"></div>
  <div className="flex items-center gap-4">
- <div className="w-12 h-12 rounded-2xl bg-rose-400/10 text-rose-400 flex items-center justify-center animate-pulse">
+ <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center animate-pulse">
  <BrainCircuit size={24} />
  </div>
  <div>
- <h3 className="font-extrabold text-sm text-rose-400 uppercase tracking-wider">Super Admin AI Smart Insights Deck</h3>
+ <h3 className="font-extrabold text-sm text-rose-500 uppercase tracking-wider">Super Admin AI Smart Insights Deck</h3>
  <p className="text-xs text-[var(--color-text-muted)] max-w-3xl mt-1 leading-normal font-semibold">
  📈 Global revenues hit **${totalGlobalRevenue.toLocaleString()}** today, showing a robust **+14.8% growth trend** week-over-week.
  🏆 **{topBranch.name}** remains the top revenue contributor.
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
  </p>
  </div>
  </div>
- <span className="text-[10px] bg-rose-400/25 text-rose-400 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shrink-0">
+ <span className="text-[10px] bg-rose-400/25 text-rose-500 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shrink-0">
  AI Active
  </span>
  </div>
@@ -91,14 +91,14 @@ export default function AdminDashboard() {
  {/* Multi-Branch Tableau Overview */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  {branches.map((b, i) => (
- <div key={i} className="glass p-6 flex justify-between items-center border border-white/20 hover:shadow-lg transition-all duration-300 rounded-3xl">
+ <div key={i} className="glass p-6 flex justify-between items-center border border-[var(--border-color)] hover:shadow-lg transition-all duration-300 rounded-3xl">
  <div className="flex items-center gap-4">
  <div className={`w-12 h-12 rounded-full glass-card ${b.color} flex items-center justify-center`}>
  <b.icon size={22} />
  </div>
  <div>
  <h3 className="font-extrabold text-base text-[var(--color-text-main)] leading-none">{b.name}</h3>
- <span className="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-2 block">Rating: {b.rating} ★</span>
+ <span className="text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-wider mt-2 block">Rating: {b.rating} ★</span>
  </div>
  </div>
  <div className="text-right">
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
 
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
  {/* Global master income streams line waveform */}
- <div className="glass p-6 border border-white/20 lg:col-span-2 flex flex-col gap-6 rounded-3xl relative">
+ <div className="glass p-6 border border-[var(--border-color)] lg:col-span-2 flex flex-col gap-6 rounded-3xl relative">
  <div className="flex justify-between items-center">
  <div>
  <h2 className="text-base font-extrabold text-[var(--color-text-main)] uppercase tracking-wider">Global Master Income Streams</h2>
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
  </div>
  <div className="text-right">
  <span className="text-2xl font-extrabold text-[var(--color-text-main)] block">${totalGlobalRevenue.toLocaleString()}</span>
- <span className="text-[10px] text-[#FF8A3D] font-extrabold flex items-center gap-1"><TrendingUp size={12} /> +12.4% last month</span>
+ <span className="text-[10px] text-[var(--color-primary)] font-extrabold flex items-center gap-1"><TrendingUp size={12} /> +12.4% last month</span>
  </div>
  </div>
 
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
  </div>
 
  {/* Global Status Log */}
- <div className="glass p-6 border border-white/20 flex flex-col gap-6 rounded-3xl">
+ <div className="glass p-6 border border-[var(--border-color)] flex flex-col gap-6 rounded-3xl">
  <div>
  <h2 className="text-base font-extrabold text-[var(--color-text-main)] uppercase tracking-wider flex items-center gap-2">
  <Activity className="text-[var(--color-primary)] animate-pulse" size={16} />
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
  {/* Live low stock warning list */}
  <div className="space-y-2 max-h-[120px] overflow-y-auto pr-1 scrollbar-thin">
  {menuItems && menuItems.filter(item => item.stock <= 3).length === 0 ? (
- <div className="text-[10px] text-rose-400 font-bold bg-rose-400/10 p-2.5 rounded-xl border border-[var(--color-secondary)]/20 text-center">
+ <div className="text-[10px] text-rose-500 font-bold bg-rose-500/10 p-2.5 rounded-xl border border-[var(--color-secondary)]/20 text-center">
  🟢 Downtown stock levels fully operational.
  </div>
  ) : (
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
  { text: 'Firebase database read/write telemetry normal: latency 32ms', time: '2h ago' }
  ].map((log, idx) => (
  <div key={idx} className="flex gap-3 pb-3 border-b border-[var(--border-color)] last:border-0">
- <ShieldCheck size={16} className="text-rose-400 mt-0.5 shrink-0" />
+ <ShieldCheck size={16} className="text-rose-500 mt-0.5 shrink-0" />
  <div>
  <p className="text-xs font-bold text-[var(--color-text-main)] leading-normal">{log.text}</p>
  <span className="text-[9px] text-[var(--color-text-muted)] mt-1 block font-bold">{log.time}</span>

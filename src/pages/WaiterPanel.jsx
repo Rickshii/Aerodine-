@@ -317,19 +317,19 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  <div className="flex gap-2">
  <button 
  onClick={() => setOrderType('dine-in')}
- className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${orderType === 'dine-in' ? 'bg-[var(--color-primary)] text-[var(--color-text-main)] shadow-md' : 'glass-card text-[var(--color-text-muted)] hover:bg-gray-700'}`}
+ className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${orderType === 'dine-in' ? 'bg-[var(--color-primary)] text-[var(--color-text-main)] shadow-md' : 'glass-card text-[var(--color-text-muted)] hover:bg-[var(--bg-glass)]'}`}
  >
  Dine-In
  </button>
  <button 
  onClick={() => setOrderType('parcel')}
- className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${orderType === 'parcel' ? 'bg-[var(--color-primary)] text-[var(--color-text-main)] shadow-md' : 'glass-card text-[var(--color-text-muted)] hover:bg-gray-700'}`}
+ className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${orderType === 'parcel' ? 'bg-[var(--color-primary)] text-[var(--color-text-main)] shadow-md' : 'glass-card text-[var(--color-text-muted)] hover:bg-[var(--bg-glass)]'}`}
  >
  <ShoppingBag size={14} /> Parcel
  </button>
  </div>
 
- <div className="h-6 w-px bg-gray-700 hidden md:block"></div>
+ <div className="h-6 w-px bg-[var(--bg-glass)] hidden md:block"></div>
 
  {orderType === 'dine-in' ? (
  <div className="flex items-center gap-2">
@@ -377,7 +377,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  className={`snap-start relative px-6 py-2.5 rounded-full font-extrabold text-xs uppercase tracking-wider transition-all duration-300 transform whitespace-nowrap overflow-hidden group flex-shrink-0 ${
  activeCategory === c 
  ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-[var(--color-text-main)] shadow-glow-primary scale-[1.02]' 
- : 'glass-card/60 backdrop-blur-md text-[var(--color-text-muted)] border border-[var(--border-color)] hover:border-[var(--color-secondary)] hover:bg-gray-700 hover:scale-[1.02]'
+ : 'glass-card/60 backdrop-blur-md text-[var(--color-text-muted)] border border-[var(--border-color)] hover:border-[var(--color-secondary)] hover:bg-[var(--bg-glass)] hover:scale-[1.02]'
  }`}
  >
  {activeCategory === c && (
@@ -452,10 +452,10 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  
  {/* Bundle Preview */}
  <div className="mt-2 bg-[var(--bg-panel)] rounded-xl p-2 sm:p-3 border border-[var(--border-color)] hidden sm:block">
- <span className="text-[9px] font-bold text-slate-450 uppercase tracking-wider block mb-1">Included in bundle:</span>
+ <span className="text-[9px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider block mb-1">Included in bundle:</span>
  <div className="space-y-1">
  {resolvedItems.map(item => (
- <div key={item.id} className="flex items-center gap-2 text-xs font-medium text-gray-300 ">
+ <div key={item.id} className="flex items-center gap-2 text-xs font-medium text-[var(--color-text-muted)] ">
  <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)]"></span>
  <span className="truncate flex-1">{item.name}</span>
  </div>
@@ -523,12 +523,12 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  <div className="flex flex-wrap gap-1 mt-1 sm:mt-1.5">
  {food.dietary && food.dietary !== 'None' && (
  <span className={`px-1.5 py-0.5 rounded text-[7px] sm:text-[8px] font-extrabold uppercase border flex items-center gap-0.5 shadow-sm ${
- food.dietary === 'Veg' ? 'bg-rose-400/10 text-rose-400 border-[var(--color-secondary)]/20' :
- food.dietary === 'Vegan' ? 'bg-rose-400/10 text-rose-400 border-[var(--color-secondary)]/20' :
+ food.dietary === 'Veg' ? 'bg-rose-500/10 text-rose-500 border-[var(--color-secondary)]/20' :
+ food.dietary === 'Vegan' ? 'bg-rose-500/10 text-rose-500 border-[var(--color-secondary)]/20' :
  food.dietary === 'Non Veg' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
  food.dietary === 'Egg' ? 'bg-pink-400/10 text-amber-550 border-pink-400/20' :
  food.dietary === 'Seafood' ? 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' :
- 'bg-gray-9000/10 text-[var(--color-text-muted)] border-gray-500/20'
+ 'bg-[var(--color-text-main)]/10 text-[var(--color-text-muted)] border-gray-500/20'
  }`}>
  {food.dietary === 'Veg' ? '🥬 Veg' : 
  food.dietary === 'Vegan' ? '🌱 Vegan' : 
@@ -572,7 +572,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </div>
 
  {/* Floating Checkout Summary Panel */}
- <div className="glass w-96 flex flex-col p-6 h-full shrink-0 border border-white/20 hidden lg:flex">
+ <div className="glass w-96 flex flex-col p-6 h-full shrink-0 border border-[var(--border-color)] hidden lg:flex">
  <div className="flex justify-between items-center pb-4 border-b border-[var(--border-color)] ">
  <h2 className="font-extrabold text-lg flex items-center gap-2 text-[var(--color-text-main)] ">
  <ShoppingCart className={orderType === 'parcel' ? 'text-[var(--color-primary)]' : 'text-[var(--color-primary)]'} size={20} />
@@ -623,9 +623,9 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  <span className="text-xs font-bold text-[var(--color-primary)] mt-1 block">${(item.price * item.qty).toFixed(2)}</span>
  </div>
  <div className="flex items-center gap-2.5 glass-card border border-slate-150 px-2.5 py-1.5 rounded-full">
- <button onClick={() => updateQty(item.id, -1)} className="text-[var(--color-text-muted)] hover:text-gray-200"><Minus size={12} /></button>
+ <button onClick={() => updateQty(item.id, -1)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"><Minus size={12} /></button>
  <span className="text-xs font-extrabold w-4 text-center">{item.qty}</span>
- <button onClick={() => updateQty(item.id, 1)} className="text-[var(--color-text-muted)] hover:text-gray-200"><Plus size={12} /></button>
+ <button onClick={() => updateQty(item.id, 1)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"><Plus size={12} /></button>
  </div>
  </motion.div>
  ))
@@ -646,11 +646,11 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </div>
 
  <div className="space-y-2">
- <div className="flex justify-between text-xs text-slate-450 font-bold">
+ <div className="flex justify-between text-xs text-[var(--color-text-muted)] font-bold">
  <span>Subtotal</span>
  <span>${subtotal.toFixed(2)}</span>
  </div>
- <div className="flex justify-between text-xs text-slate-450 font-bold">
+ <div className="flex justify-between text-xs text-[var(--color-text-muted)] font-bold">
  <span>GST (5%)</span>
  <span>${tax.toFixed(2)}</span>
  </div>
@@ -716,7 +716,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </h2>
  <button
  onClick={() => setShowMobileCart(false)}
- className="p-2 text-slate-450 hover:text-gray-200"
+ className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"
  aria-label="Close cart drawer"
  >
  <XCircle size={22} />
@@ -754,9 +754,9 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  <span className="text-xs font-bold text-[var(--color-primary)] mt-1 block">${(item.price * item.qty).toFixed(2)}</span>
  </div>
  <div className="flex items-center gap-2.5 bg-[var(--bg-panel)] border border-slate-150 px-2.5 py-1.5 rounded-full">
- <button onClick={() => updateQty(item.id, -1)} className="text-[var(--color-text-muted)] hover:text-gray-200"><Minus size={12} /></button>
+ <button onClick={() => updateQty(item.id, -1)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"><Minus size={12} /></button>
  <span className="text-xs font-extrabold w-4 text-center">{item.qty}</span>
- <button onClick={() => updateQty(item.id, 1)} className="text-[var(--color-text-muted)] hover:text-gray-200"><Plus size={12} /></button>
+ <button onClick={() => updateQty(item.id, 1)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]"><Plus size={12} /></button>
  </div>
  </div>
  ))
@@ -765,7 +765,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
 
  <div className="pt-4 border-t border-slate-205 space-y-4 mt-auto">
  <div>
- <label className="text-xs font-extrabold text-slate-450 block mb-1.5">Special Chef Instructions</label>
+ <label className="text-xs font-extrabold text-[var(--color-text-muted)] block mb-1.5">Special Chef Instructions</label>
  <textarea 
  value={notes}
  onChange={e => setNotes(e.target.value)}
@@ -776,11 +776,11 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </div>
 
  <div className="space-y-2">
- <div className="flex justify-between text-xs text-slate-450 font-bold">
+ <div className="flex justify-between text-xs text-[var(--color-text-muted)] font-bold">
  <span>Subtotal</span>
  <span>${subtotal.toFixed(2)}</span>
  </div>
- <div className="flex justify-between text-xs text-slate-450 font-bold">
+ <div className="flex justify-between text-xs text-[var(--color-text-muted)] font-bold">
  <span>GST (5%)</span>
  <span>${tax.toFixed(2)}</span>
  </div>
@@ -834,7 +834,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  const isParcel = order.orderType === 'parcel';
  
  return (
- <div key={order.id || order.orderNo} className={`glass p-6 border transition-all ${isCancelled ? 'border-red-500/20 bg-red-500/5 opacity-70' : isRequested ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5' : isParcel ? 'border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5' : 'border-white/20'}`}>
+ <div key={order.id || order.orderNo} className={`glass p-6 border transition-all ${isCancelled ? 'border-red-500/20 bg-red-500/5 opacity-70' : isRequested ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5' : isParcel ? 'border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5' : 'border-[var(--border-color)]'}`}>
  <div className="flex justify-between items-start border-b border-[var(--border-color)] pb-3 mb-4">
  <div>
  <h4 className={`font-extrabold text-sm ${isParcel ? 'text-[var(--color-primary)] flex items-center gap-1.5' : 'text-[var(--color-text-main)] '}`}>
@@ -846,7 +846,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  
  {/* Status Badges */}
  <span className={`text-[9px] uppercase tracking-wider font-extrabold px-3 py-1 rounded-full ${
- order.status === 'pending' ? 'glass-card text-gray-300 ' :
+ order.status === 'pending' ? 'glass-card text-[var(--color-text-muted)] ' :
  order.status === 'preparing' ? 'bg-[var(--color-primary)]/10 text-orange-655 animate-pulse' :
  order.status === 'packed' ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] shadow-glow-secondary' :
  (order.status === 'ready' || order.status === 'ready_for_pickup') ? 'bg-rose-400/20 text-gold-655 shadow-glow-secondary' :
@@ -887,7 +887,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  )}
 
  {isRejected && (
- <div className="glass-card border border-[var(--border-color)] text-gray-300 rounded-xl p-3 text-[10px] font-bold mb-4">
+ <div className="glass-card border border-[var(--border-color)] text-[var(--color-text-muted)] rounded-xl p-3 text-[10px] font-bold mb-4">
  🛡️ CANCEL REJECTED<br/>
  Ticket returned to active queue.
  </div>
@@ -918,12 +918,12 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  initial={{ opacity: 0, y: 20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: 20 }}
- className="glass max-w-md w-full p-6 border border-white/20 relative flex flex-col gap-5 text-gray-100 "
+ className="glass max-w-md w-full p-6 border border-[var(--border-color)] relative flex flex-col gap-5 text-gray-100 "
  >
  <div className="text-center space-y-2">
  <AlertTriangle className="text-red-500 mx-auto" size={40} />
  <h3 className="text-lg font-extrabold uppercase tracking-wide">Confirm Order Cancellation</h3>
- <p className="text-xs text-slate-450 font-bold">
+ <p className="text-xs text-[var(--color-text-muted)] font-bold">
  {cancellingOrder.orderType === 'parcel' ? `Parcel ${cancellingOrder.parcelToken}` : `Table #${cancellingOrder.table}`} • Order {cancellingOrder.orderNo}
  </p>
  </div>
@@ -963,7 +963,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </button>
  <button
  onClick={() => setCancellingOrder(null)}
- className="px-5 py-3 border border-[var(--border-color)] text-gray-300 rounded-xl text-xs font-bold hover:glass-card transition-all"
+ className="px-5 py-3 border border-[var(--border-color)] text-[var(--color-text-muted)] rounded-xl text-xs font-bold hover:glass-card transition-all"
  >
  Go Back
  </button>
@@ -980,7 +980,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  initial={{ scale: 0.9, y: 20 }}
  animate={{ scale: 1, y: 0 }}
  exit={{ scale: 0.9, y: 20 }}
- className="glass max-w-lg w-full p-6 border border-white/20 rounded-2xl relative flex flex-col gap-4 text-gray-100 max-h-[90vh] overflow-y-auto scrollbar-thin"
+ className="glass max-w-lg w-full p-6 border border-[var(--border-color)] rounded-2xl relative flex flex-col gap-4 text-gray-100 max-h-[90vh] overflow-y-auto scrollbar-thin"
  >
  <div className="flex justify-between items-center pb-2 border-b border-[var(--border-color)] ">
  <h3 className="font-extrabold text-lg text-[var(--color-text-main)] flex items-center gap-2">
@@ -989,7 +989,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </h3>
  <button 
  onClick={() => setCustomizingCombo(null)} 
- className="w-8 h-8 flex items-center justify-center glass-card hover:bg-gray-700 text-[var(--color-text-muted)] rounded-full transition-all"
+ className="w-8 h-8 flex items-center justify-center glass-card hover:bg-[var(--bg-glass)] text-[var(--color-text-muted)] rounded-full transition-all"
  >
  <XCircle size={20} />
  </button>
@@ -1146,7 +1146,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  </button>
  <button
  onClick={() => setCustomizingCombo(null)}
- className="px-5 py-3 border border-[var(--border-color)] text-gray-300 rounded-xl text-xs font-bold hover:glass-card transition-all"
+ className="px-5 py-3 border border-[var(--border-color)] text-[var(--color-text-muted)] rounded-xl text-xs font-bold hover:glass-card transition-all"
  >
  Cancel
  </button>
@@ -1167,11 +1167,11 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  initial={{ scale: 0.9, y: 20 }}
  animate={{ scale: 1, y: 0 }}
  exit={{ scale: 0.9, y: 20 }}
- className="glass max-w-lg w-full p-6 border border-white/20 rounded-xl overflow-auto max-h-[90vh]"
+ className="glass max-w-lg w-full p-6 border border-[var(--border-color)] rounded-xl overflow-auto max-h-[90vh]"
  >
  <div className="flex justify-between items-start mb-4">
  <h3 className="font-extrabold text-xl text-[var(--color-text-main)] ">{selectedDish.name}</h3>
- <button onClick={closeDishDetails} className="text-[var(--color-text-muted)] hover:text-gray-200">
+ <button onClick={closeDishDetails} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
  <XCircle size={24} />
  </button>
  </div>

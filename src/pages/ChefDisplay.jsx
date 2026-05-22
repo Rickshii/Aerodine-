@@ -78,9 +78,9 @@ export default function ChefDisplay() {
  icon: '👨‍🍳',
  style: {
  borderRadius: '16px',
- background: '#121212',
- color: '#F8F5F0',
- border: '1px solid #FF7A3D'
+ background: 'var(--bg-panel)',
+ color: 'var(--color-text-main)',
+ border: '1px solid var(--color-primary)'
  }
  });
  } catch (err) {
@@ -121,7 +121,7 @@ export default function ChefDisplay() {
  
  const loadPercentage = Math.min(100, Math.floor((activeTickets / 8) * 100));
  const loadLevel = activeTickets <= 2 ? 'Low Load' : activeTickets <= 5 ? 'Medium Load' : 'High Load';
- const loadColor = activeTickets <= 2 ? 'text-rose-400 bg-rose-400/10 border-[var(--color-secondary)]/20' : activeTickets <= 5 ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20' : 'text-red-500 bg-red-500/10 border-red-500/20 animate-pulse';
+ const loadColor = activeTickets <= 2 ? 'text-rose-500 bg-rose-500/10 border-[var(--color-secondary)]/20' : activeTickets <= 5 ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20' : 'text-red-500 bg-red-500/10 border-red-500/20 animate-pulse';
 
  // Dynamic Pantry Alerts & Unavailable Ingredients warnings
  const pantryAlertList = (groceryItems || []).map(grocery => {
@@ -159,26 +159,26 @@ export default function ChefDisplay() {
  const sortedPreparing = [...preparingOrders].sort((a, b) => (elapsedTimes[b.orderNo] || 0) - (elapsedTimes[a.orderNo] || 0));
 
  return (
- <div className="h-full flex flex-col gap-6 text-[#F8F5F0] bg-[#111111] p-6 rounded-[32px] border border-[var(--color-primary)]/10 shadow-2xl relative overflow-y-auto">
+ <div className="h-full flex flex-col gap-6 text-[var(--color-text-main)] bg-[var(--bg-panel)] p-6 rounded-[32px] border border-[var(--color-primary)]/10 shadow-2xl relative overflow-y-auto">
  
  {/* Real-time Enterprise KDS Analytics Header */}
- <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-white/5 pb-6">
+ <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 border-b border-[var(--border-color)] pb-6">
  <div>
  <h1 className="text-2xl font-extrabold tracking-tight text-[var(--color-text-main)] flex items-center gap-2.5">
  <span className="w-3 h-3 rounded-full bg-[var(--color-primary)] animate-ping"></span>
  AeroDine Enterprise KDS v4.2
  </h1>
- <p className="text-xs text-slate-450 font-bold uppercase tracking-wider mt-1 flex items-center gap-2">
+ <p className="text-xs text-[var(--color-text-muted)] font-bold uppercase tracking-wider mt-1 flex items-center gap-2">
  Michelin Kitchen Command Console • Real-Time Broadcast Enabled
  <button onClick={() => setIsMuted(!isMuted)} className="ml-2 hover:text-[var(--color-text-main)] transition-colors">
- {isMuted ? <VolumeX size={14} className="text-red-500"/> : <Volume2 size={14} className="text-rose-400"/>}
+ {isMuted ? <VolumeX size={14} className="text-red-500"/> : <Volume2 size={14} className="text-rose-500"/>}
  </button>
  </p>
  </div>
 
  {/* Live Analytics Widgets */}
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full xl:w-auto">
- <div className="bg-[#121212] border border-white/5 px-4 py-3 rounded-2xl flex items-center gap-3">
+ <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] px-4 py-3 rounded-2xl flex items-center gap-3">
  <Flame className="text-[var(--color-primary)] shrink-0" size={20} />
  <div>
  <span className="text-[10px] text-[var(--color-text-muted)] font-bold block uppercase tracking-wider">Active Tickets</span>
@@ -194,7 +194,7 @@ export default function ChefDisplay() {
  </div>
  </div>
 
- <div className="bg-[#121212] border border-white/5 px-4 py-3 rounded-2xl flex items-center gap-3">
+ <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] px-4 py-3 rounded-2xl flex items-center gap-3">
  <Timer className="text-[var(--color-primary)] shrink-0" size={20} />
  <div>
  <span className="text-[10px] text-[var(--color-text-muted)] font-bold block uppercase tracking-wider">Delayed Tickets</span>
@@ -202,7 +202,7 @@ export default function ChefDisplay() {
  </div>
  </div>
 
- <div className="bg-[#121212] border border-white/5 px-4 py-3 rounded-2xl flex items-center gap-3">
+ <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] px-4 py-3 rounded-2xl flex items-center gap-3">
  <CheckCircle className="text-cyan-500 shrink-0" size={20} />
  <div>
  <span className="text-[10px] text-[var(--color-text-muted)] font-bold block uppercase tracking-wider">Pass Served</span>
@@ -215,7 +215,7 @@ export default function ChefDisplay() {
  {/* Real-time Pantry Alerts & Kitchen Workload Dashboard */}
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
  {/* Kitchen workload progress circles */}
- <div className="bg-[#121212] border border-white/5 p-5 rounded-[24px] flex flex-col justify-between gap-4">
+ <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] p-5 rounded-[24px] flex flex-col justify-between gap-4">
  <div>
  <h3 className="font-extrabold text-xs text-[var(--color-text-main)] uppercase tracking-wider flex items-center gap-1.5">
  <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-ping"></span>
@@ -260,7 +260,7 @@ export default function ChefDisplay() {
  </div>
 
  {/* Real-time Pantry alert ledger warning desk */}
- <div className="bg-[#121212] border border-white/5 p-5 rounded-[24px] lg:col-span-2 flex flex-col justify-between gap-3">
+ <div className="bg-[var(--bg-panel)] border border-[var(--border-color)] p-5 rounded-[24px] lg:col-span-2 flex flex-col justify-between gap-3">
  <div className="flex justify-between items-center">
  <div>
  <h3 className="font-extrabold text-xs text-[var(--color-text-main)] uppercase tracking-wider flex items-center gap-1.5">
@@ -276,10 +276,10 @@ export default function ChefDisplay() {
 
  <div className="flex-1 overflow-y-auto max-h-[85px] space-y-2.5 pr-1 scrollbar-thin">
  {pantryAlertList.length === 0 ? (
- <div className="text-[10px] font-bold text-rose-400 py-4 text-center">🟢 All fresh raw grocery pantry stocks are completely adequate. No dish impacts detected!</div>
+ <div className="text-[10px] font-bold text-rose-500 py-4 text-center">🟢 All fresh raw grocery pantry stocks are completely adequate. No dish impacts detected!</div>
  ) : (
  pantryAlertList.map((alert, idx) => (
- <div key={idx} className="flex justify-between items-center bg-[var(--bg-panel)]/60 p-2.5 rounded-xl border border-white/5 text-[10px] font-bold gap-4">
+ <div key={idx} className="flex justify-between items-center bg-[var(--bg-panel)]/60 p-2.5 rounded-xl border border-[var(--border-color)] text-[10px] font-bold gap-4">
  <div className="min-w-0">
  <div className="flex items-center gap-2">
  <span className={`w-2 h-2 rounded-full ${alert.status === 'Red' ? 'bg-red-500 animate-ping' : 'bg-[var(--color-primary)]'}`}></span>
@@ -302,7 +302,7 @@ export default function ChefDisplay() {
 
  {/* Red Glowing KDS Emergency Alert Dashboard */}
  {combinedAlerts.length > 0 && (
- <div className="bg-[var(--bg-panel)]/95 backdrop-blur-xl border border-white/10 rounded-[24px] p-4 sm:p-5 flex flex-col gap-4 sticky top-0 z-40 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+ <div className="bg-[var(--bg-panel)]/95 backdrop-blur-xl border border-[var(--border-color)] rounded-[24px] p-4 sm:p-5 flex flex-col gap-4 sticky top-0 z-40 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
  <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3">
  <span className="font-extrabold text-xs text-red-500 uppercase tracking-widest flex items-center gap-2">
  <span className={`w-3.5 h-3.5 rounded-full bg-red-500 shrink-0 ${unreadAlertsCount > 0 ? 'animate-ping' : ''}`}></span>
@@ -335,7 +335,7 @@ export default function ChefDisplay() {
  </span>
  </div>
 
- <p className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border ${alert.status === 'resolved' ? 'text-emerald-300 bg-rose-400/10 border-[var(--color-secondary)]/20' : 'text-red-300 bg-red-500/10 border-red-500/20'}`}>
+ <p className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border ${alert.status === 'resolved' ? 'text-emerald-500 bg-rose-500/10 border-[var(--color-secondary)]/20' : 'text-red-500 bg-red-500/10 border-red-500/20'}`}>
  {alert.message}
  </p>
 
@@ -345,7 +345,7 @@ export default function ChefDisplay() {
  </div>
  )}
  {alert.status === 'resolved' && (
- <div className="text-[9px] text-rose-400 font-bold">
+ <div className="text-[9px] text-rose-500 font-bold">
  Resolved By: {alert.resolvedBy || 'Chef'}
  </div>
  )}
@@ -370,7 +370,7 @@ export default function ChefDisplay() {
  if (alert.isLegacyCancel) acknowledgeCancellationAlert(alert.originalId);
  else markAlertSeen(alert.id);
  }}
- className="flex-1 py-1.5 bg-gray-700 hover:bg-gray-600 text-[var(--color-text-main)] rounded-xl text-[9px] font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1"
+ className="flex-1 py-1.5 bg-[var(--bg-glass)] hover:bg-gray-600 text-[var(--color-text-main)] rounded-xl text-[9px] font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1"
  >
  <Eye size={11} /> Seen
  </button>
@@ -428,7 +428,7 @@ export default function ChefDisplay() {
  </span>
  </div>
 
- <p className="text-[11px] text-purple-300 font-bold bg-[var(--color-primary)]/5 px-2.5 py-1.5 rounded-lg border border-[var(--color-primary)]/10">
+ <p className="text-[11px] text-purple-500 font-bold bg-[var(--color-primary)]/5 px-2.5 py-1.5 rounded-lg border border-[var(--color-primary)]/10">
  Balance Food Packing Required
  </p>
 
@@ -484,10 +484,10 @@ export default function ChefDisplay() {
  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 min-h-[480px]">
  
  {/* COLUMN 1: PENDING / NEW */}
- <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-white/5">
+ <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-[var(--border-color)]">
  <div className="flex justify-between items-center px-2">
  <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-2">
- <span className="w-2.5 h-2.5 rounded-full bg-gray-9000 animate-ping"></span>
+ <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-text-main)] animate-ping"></span>
  1. Pending Tickets ({sortedPending.length})
  </h2>
  </div>
@@ -507,7 +507,7 @@ export default function ChefDisplay() {
  </div>
 
  {/* COLUMN 2: PREPARING / COOKING */}
- <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-white/5">
+ <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-[var(--border-color)]">
  <div className="flex justify-between items-center px-2">
  <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--color-primary)] flex items-center gap-2">
  <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)] animate-pulse"></span>
@@ -531,9 +531,9 @@ export default function ChefDisplay() {
  </div>
 
  {/* COLUMN 3: READY TO SERVE */}
- <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-white/5">
+ <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-[var(--border-color)]">
  <div className="flex justify-between items-center px-2">
- <h2 className="text-xs font-extrabold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+ <h2 className="text-xs font-extrabold uppercase tracking-wider text-rose-500 flex items-center gap-2">
  <span className="w-2.5 h-2.5 rounded-full bg-rose-400 shadow-glow-secondary animate-pulse"></span>
  3. Ready / At Pass ({readyOrders.length})
  </h2>
@@ -558,7 +558,7 @@ export default function ChefDisplay() {
  </div>
 
  {/* COLUMN 4: SERVED / HISTORIC */}
- <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-white/5">
+ <div className="flex flex-col gap-4 bg-[var(--bg-main)]/40 p-4 rounded-3xl border border-[var(--border-color)]">
  <div className="flex justify-between items-center px-2">
  <h2 className="text-xs font-extrabold uppercase tracking-wider text-cyan-500 flex items-center gap-2">
  <span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
@@ -583,20 +583,20 @@ export default function ChefDisplay() {
  </div>
 
  {/* Stock Quick Controller Panel */}
- <div className="glass bg-[#121212] p-6 border border-[var(--color-primary)]/15 mt-6 rounded-[24px]">
+ <div className="glass bg-[var(--bg-panel)] p-6 border border-[var(--color-primary)]/15 mt-6 rounded-[24px]">
  <div className="flex justify-between items-center mb-4">
  <h2 className="text-xs font-extrabold text-[var(--color-text-main)] uppercase tracking-widest flex items-center gap-2">
  <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-ping"></span>
  Real-time Kitchen Inventory Control
  </h2>
- <span className="text-[10px] text-slate-450 font-mono">Instant synchronization enabled</span>
+ <span className="text-[10px] text-[var(--color-text-muted)] font-mono">Instant synchronization enabled</span>
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
  {menuItems.map(item => {
  const isOut = item.stock === 0;
  const isLow = item.stock <= 3;
  return (
- <div key={item.id} className={`bg-[#111111]/80 p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${isOut ? 'border-red-500/30 bg-red-500/5' : isLow ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5' : 'border-white/5'}`}>
+ <div key={item.id} className={`bg-[var(--bg-panel)]/80 p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${isOut ? 'border-red-500/30 bg-red-500/5' : isLow ? 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5' : 'border-[var(--border-color)]'}`}>
  <div>
  <div className="flex justify-between items-start gap-1">
  <span className="font-extrabold text-xs text-[var(--color-text-main)] truncate max-w-[150px]" title={item.name}>{item.name}</span>
@@ -608,7 +608,7 @@ export default function ChefDisplay() {
  </div>
  <div className="text-[var(--color-text-muted)] text-[10px] font-bold mt-1.5 uppercase flex justify-between">
  <span>Available:</span>
- <span className={`font-extrabold font-mono ${isOut ? 'text-red-500' : isLow ? 'text-[var(--color-primary)]' : 'text-rose-400'}`}>{item.stock} Servings</span>
+ <span className={`font-extrabold font-mono ${isOut ? 'text-red-500' : isLow ? 'text-[var(--color-primary)]' : 'text-rose-500'}`}>{item.stock} Servings</span>
  </div>
  </div>
 
@@ -616,19 +616,19 @@ export default function ChefDisplay() {
  <div className="flex gap-1.5 sm:gap-1">
  <button
  onClick={() => updateMenuStock(item.id, (item.stock || 0) + 5)}
- className="flex-1 py-2 sm:py-1 glass-card hover:bg-gray-700 text-[var(--color-text-main)] rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
+ className="flex-1 py-2 sm:py-1 glass-card hover:bg-[var(--bg-glass)] text-[var(--color-text-main)] rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
  >
  +5
  </button>
  <button
  onClick={() => updateMenuStock(item.id, (item.stock || 0) + 10)}
- className="flex-1 py-2 sm:py-1 glass-card hover:bg-gray-700 text-[var(--color-text-main)] rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
+ className="flex-1 py-2 sm:py-1 glass-card hover:bg-[var(--bg-glass)] text-[var(--color-text-main)] rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
  >
  +10
  </button>
  <button
  onClick={() => updateMenuStock(item.id, (item.stock || 0) + 20)}
- className="flex-1 py-2 sm:py-1 glass-card hover:bg-gray-700 text-[var(--color-text-main)] rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
+ className="flex-1 py-2 sm:py-1 glass-card hover:bg-[var(--bg-glass)] text-[var(--color-text-main)] rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
  >
  +20
  </button>
@@ -636,7 +636,7 @@ export default function ChefDisplay() {
  <div className="flex gap-1.5 sm:gap-1">
  <button
  onClick={() => updateMenuStock(item.id, 50)}
- className="flex-1 py-2 sm:py-1 bg-rose-400/10 hover:bg-rose-400/25 text-emerald-450 border border-[var(--color-secondary)]/20 rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
+ className="flex-1 py-2 sm:py-1 bg-rose-500/10 hover:bg-rose-400/25 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-lg text-[10px] sm:text-[9px] font-bold transition-all active:scale-95"
  >
  Restock Full
  </button>
@@ -693,7 +693,7 @@ function KdsTicketCard({ order, elapsedSeconds, onMoveForward, onMoveBackward, g
  onMoveBackward();
  }
  }}
- className={`glass overflow-hidden flex flex-col border bg-[#121212]/95 shadow-xl relative transition-all duration-300 touch-pan-y ${isDelayed ? 'border-[var(--color-primary)] shadow-glow-primary border-2' : isUrgent ? 'border-[var(--color-secondary)] border border-t-8 border-t-rose-400' : isParcel ? 'border-[var(--color-primary)]/50 shadow-glow-secondary border-l-4 border-l-rose-600' : 'border-[var(--border-color)]'}`}
+ className={`glass overflow-hidden flex flex-col border bg-[var(--bg-panel)]/95 shadow-xl relative transition-all duration-300 touch-pan-y ${isDelayed ? 'border-[var(--color-primary)] shadow-glow-primary border-2' : isUrgent ? 'border-[var(--color-secondary)] border border-t-8 border-t-rose-400' : isParcel ? 'border-[var(--color-primary)]/50 shadow-glow-secondary border-l-4 border-l-rose-600' : 'border-[var(--border-color)]'}`}
  >
  {/* Urgent / Delayed Glow Banner */}
  {isDelayed && (
@@ -703,21 +703,21 @@ function KdsTicketCard({ order, elapsedSeconds, onMoveForward, onMoveBackward, g
  )}
  
  {isUrgent && !isDelayed && (
- <div className="bg-rose-400 text-[#111111] font-extrabold text-[9px] px-3 py-0.5 uppercase text-center tracking-widest">
+ <div className="bg-rose-400 text-[var(--bg-main)] font-extrabold text-[9px] px-3 py-0.5 uppercase text-center tracking-widest">
  ★ VIP HIGH PRIORITY TICKET
  </div>
  )}
 
  {/* Ticket Header */}
- <div className="p-4 border-b border-white/5 flex justify-between items-start">
+ <div className="p-4 border-b border-[var(--border-color)] flex justify-between items-start">
  <div>
  <h3 className={`font-extrabold text-sm flex items-center gap-1.5 ${isParcel ? 'text-coral-400' : 'text-[var(--color-text-main)]'}`}>
  {isParcel ? <><ShoppingBag size={14} /> Parcel {order.parcelToken}</> : `Table #${order.table}`}
  </h3>
  <span className="text-[9px] text-[var(--color-text-muted)] block font-mono font-bold tracking-wider mt-0.5">{order.orderNo}</span>
- {isParcel && <div className="text-[10px] text-purple-300/70 mt-1 uppercase">Pickup: {order.pickupTime}</div>}
+ {isParcel && <div className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase">Pickup: {order.pickupTime}</div>}
  </div>
- <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold ${isDelayed ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] animate-pulse' : 'glass-card text-gray-300'}`}>
+ <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold ${isDelayed ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] animate-pulse' : 'glass-card text-[var(--color-text-muted)]'}`}>
  <Clock size={10} />
  {formattedTime}
  </div>
@@ -726,15 +726,15 @@ function KdsTicketCard({ order, elapsedSeconds, onMoveForward, onMoveBackward, g
  {/* Item Pipeline & Station Categorization */}
  <div className="p-4 flex-1 space-y-4">
  {order.items.map((item, idx) => (
- <div key={idx} className="flex flex-col gap-1 pb-2 border-b border-white/5 last:border-0">
+ <div key={idx} className="flex flex-col gap-1 pb-2 border-b border-[var(--border-color)] last:border-0">
  <div className="flex justify-between items-start">
  <div className="font-extrabold text-[var(--color-text-main)] text-xs flex items-center gap-2">
- <span className="glass-card text-gray-200 px-1.5 py-0.5 rounded text-[10px] font-mono">{item.qty}x</span>
+ <span className="glass-card text-[var(--color-text-main)] px-1.5 py-0.5 rounded text-[10px] font-mono">{item.qty}x</span>
  {item.name}
  </div>
  </div>
  {/* Real-time kitchen prep station tagger */}
- <span className="text-[9px] font-bold text-[#D4A373] uppercase block">{getStationLabel(item.category || 'Main Course')}</span>
+ <span className="text-[9px] font-bold text-[var(--color-primary)] uppercase block">{getStationLabel(item.category || 'Main Course')}</span>
  </div>
  ))}
 
@@ -763,11 +763,11 @@ function KdsTicketCard({ order, elapsedSeconds, onMoveForward, onMoveBackward, g
  </div>
 
  {/* KDS Columns quick transition flow buttons */}
- <div className="p-3 bg-[var(--bg-main)]/40 border-t border-white/5 flex gap-2 justify-between">
+ <div className="p-3 bg-[var(--bg-main)]/40 border-t border-[var(--border-color)] flex gap-2 justify-between">
  {onMoveBackward ? (
  <button 
  onClick={onMoveBackward}
- className="p-2 glass-card hover:bg-gray-700 text-gray-300 hover:text-[var(--color-text-main)] rounded-lg transition-all"
+ className="p-2 glass-card hover:bg-[var(--bg-glass)] text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] rounded-lg transition-all"
  title="Move back"
  >
  <ArrowLeft size={12} />
