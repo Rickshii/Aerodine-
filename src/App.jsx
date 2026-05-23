@@ -215,21 +215,25 @@ function AppLayout() {
       const latest = notifications[0];
       const ageMs = Date.now() - new Date(latest.timestamp).getTime();
       if (ageMs < 4000) {
-        toast((t) => (
-          <div className="flex flex-col gap-1 p-1">
-            <span className="font-extrabold text-[10px] text-[var(--color-primary)] uppercase tracking-wider">📢 KDS Broadcast Alert</span>
-            <span className="text-xs font-bold text-[var(--color-text-main)]">{latest.message}</span>
+        toast.custom((t) => (
+          <div className={`glass-card flex items-start gap-3 p-4 rounded-2xl border border-[var(--color-primary)]/30 shadow-[0_10px_40px_rgba(var(--color-primary-rgb),0.15)] bg-[var(--bg-panel)]/95 backdrop-blur-xl max-w-sm w-full transition-all duration-300 transform ${t.visible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}>
+            <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center shrink-0">
+              <Bell size={16} className="text-[var(--color-primary)] animate-pulse" />
+            </div>
+            <div className="flex flex-col gap-1 w-full">
+              <div className="flex justify-between items-center w-full">
+                <span className="font-extrabold text-[10px] text-[var(--color-primary)] uppercase tracking-wider">📢 KDS Broadcast</span>
+                <button onClick={() => toast.dismiss(t.id)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
+                  <X size={14} />
+                </button>
+              </div>
+              <span className="text-sm font-bold text-[var(--color-text-main)] leading-snug">{latest.message}</span>
+            </div>
           </div>
         ), {
-          icon: '🍳',
-          duration: 5000,
-          style: {
-            background: 'var(--bg-panel)',
-            color: 'var(--color-text-main)',
-            borderRadius: '20px',
-            border: '1px solid var(--border-color)',
-            boxShadow: '0 10px 30px var(--shadow-color)'
-          }
+          id: latest.id,
+          duration: 4000,
+          position: 'top-center'
         });
       }
     }
@@ -239,7 +243,20 @@ function AppLayout() {
 
   return (
     <div className="h-screen w-screen flex overflow-hidden">
-      <Toaster position="top-right" />
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: 'var(--bg-panel)',
+            color: 'var(--color-text-main)',
+            borderRadius: '16px',
+            border: '1px solid var(--border-color)',
+            boxShadow: '0 10px 30px var(--shadow-color)',
+            fontWeight: 'bold'
+          }
+        }} 
+      />
       
       {showSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
       

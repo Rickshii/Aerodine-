@@ -47,16 +47,60 @@ export default function ChefDisplay() {
  }
  }, [pendingOrders.length, preparingOrders.length]);
 
+ const toastedAlerts = React.useRef(new Set());
+
  // Dynamic cancel alert sound and toast trigger
  useEffect(() => {
- if (unreadAlertsCount > 0 && !isMuted) {
- try {
- const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/911/911-84.wav');
- audio.volume = 0.25;
- audio.play().catch(() => {});
- } catch (e) {}
+ if (combinedAlerts.length > 0) {
+   const newAlerts = combinedAlerts.filter(a => a.status === 'active' && !toastedAlerts.current.has(a.id));
+   
+   if (newAlerts.length > 0) {
+     if (!isMuted) {
+       try {
+         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/911/911-84.wav');
+         audio.volume = 0.25;
+         audio.play().catch(() => {});
+       } catch (e) {}
+     }
+     
+     newAlerts.forEach(alert => {
+       toastedAlerts.current.add(alert.id);
+       
+       toast.custom((t) => (
+         <div
+           className={`glass-card flex items-start gap-3 p-4 rounded-2xl border border-red-500/30 shadow-[0_10px_40px_rgba(239,68,68,0.15)] bg-[var(--bg-panel)]/95 backdrop-blur-xl max-w-sm w-full transition-all duration-300 transform ${t.visible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}
+         >
+           <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+             <ShieldAlert size={16} className="text-red-500 animate-pulse" />
+           </div>
+           <div className="flex flex-col gap-2 w-full">
+             <div className="flex justify-between items-center w-full">
+               <span className="font-extrabold text-[10px] text-red-500 uppercase tracking-wider">{alert.type}</span>
+               <button onClick={() => toast.dismiss(t.id)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
+                 <X size={14} />
+               </button>
+             </div>
+             <span className="text-sm font-bold text-[var(--color-text-main)] leading-snug">{alert.message}</span>
+             <div className="flex gap-2 mt-1">
+               <button 
+                 onClick={() => {
+                   toast.dismiss(t.id);
+                   if (alert.isLegacyCancel) acknowledgeCancellationAlert(alert.originalId);
+                   else resolveAlert(alert.id, 'Chef');
+                   toast.success('Alert marked as resolved!', { icon: '✅' });
+                 }}
+                 className="flex-1 bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-glow-emerald"
+               >
+                 Resolve
+               </button>
+             </div>
+           </div>
+         </div>
+       ), { duration: 6000, id: `kds-alert-${alert.id}`, position: 'top-center' });
+     });
+   }
  }
- }, [unreadAlertsCount, isMuted]);
+ }, [combinedAlerts, isMuted, acknowledgeCancellationAlert, resolveAlert]);
 
  // Dynamic cooking clock tracker updates every second
  useEffect(() => {
@@ -300,99 +344,7 @@ export default function ChefDisplay() {
  </div>
  </div>
 
- {/* Red Glowing KDS Emergency Alert Dashboard */}
- {combinedAlerts.length > 0 && (
- <div className="bg-[var(--bg-panel)]/95 backdrop-blur-xl border border-[var(--border-color)] rounded-[24px] p-4 sm:p-5 flex flex-col gap-4 sticky top-0 z-40 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
- <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3">
- <span className="font-extrabold text-xs text-red-500 uppercase tracking-widest flex items-center gap-2">
- <span className={`w-3.5 h-3.5 rounded-full bg-red-500 shrink-0 ${unreadAlertsCount > 0 ? 'animate-ping' : ''}`}></span>
- 🚨 ALERTS: {activeAlertsCount} Active ({unreadAlertsCount} Unread)
- </span>
- <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
- <button onClick={() => setIsMuted(!isMuted)} className={`text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-wider border flex items-center justify-center sm:justify-start gap-1.5 transition-all flex-1 sm:flex-none ${isMuted ? 'glass-card text-[var(--color-text-muted)] border-[var(--border-color)]' : 'bg-red-500/20 text-red-400 border-red-500/30 shadow-glow-red'}`}>
- {isMuted ? <><VolumeX size={12}/> Silenced</> : <><Volume2 size={12}/> Mute</>}
- </button>
- </div>
- </div>
 
- <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[300px] overflow-x-auto sm:overflow-y-auto pb-2 sm:pb-0 sm:pr-1 snap-x scrollbar-none sm:scrollbar-thin">
- <AnimatePresence>
- {combinedAlerts.map(alert => (
- <motion.div 
- key={alert.id}
- initial={{ opacity: 0, scale: 0.95 }}
- animate={{ opacity: 1, scale: 1 }}
- exit={{ opacity: 0, scale: 0.9, filter: 'blur(4px)' }}
- className={`glass p-4 rounded-2xl flex flex-col justify-between gap-4 shadow-lg transition-all group duration-500 border-2 ${alert.status === 'resolved' ? 'border-[var(--color-secondary)]/50 bg-rose-400/5' : !alert.seen ? 'border-red-500/50 bg-red-500/10 animate-pulse-subtle' : 'border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10'}`}
- >
- <div className="space-y-2">
- <div className="flex justify-between items-start">
- <span className={`font-extrabold text-xs uppercase flex items-center gap-1.5 ${alert.status === 'resolved' ? 'text-emerald-400' : 'text-[var(--color-text-main)]'}`}>
- {alert.type} {alert.status === 'resolved' && <CheckCircle size={12}/>}
- </span>
- <span className="text-[9px] uppercase tracking-wider font-extrabold text-[var(--color-text-muted)] font-mono">
- {new Date(alert.timestamp).toLocaleTimeString()}
- </span>
- </div>
-
- <p className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border ${alert.status === 'resolved' ? 'text-emerald-500 bg-rose-500/10 border-[var(--color-secondary)]/20' : 'text-red-500 bg-red-500/10 border-red-500/20'}`}>
- {alert.message}
- </p>
-
- {alert.meta?.table && (
- <div className="flex items-center justify-between text-[9px] text-[var(--color-text-muted)] font-bold mt-1">
- <span>Target: {alert.meta.orderType === 'parcel' ? `Parcel ${alert.meta.parcelToken}` : `Table #${alert.meta.table}`}</span>
- </div>
- )}
- {alert.status === 'resolved' && (
- <div className="text-[9px] text-rose-500 font-bold">
- Resolved By: {alert.resolvedBy || 'Chef'}
- </div>
- )}
- </div>
-
- <div className="flex gap-2">
- {alert.status !== 'resolved' && (
- <button
- onClick={() => {
- if (alert.isLegacyCancel) acknowledgeCancellationAlert(alert.originalId);
- else resolveAlert(alert.id, 'Chef');
- toast.success('Alert marked as resolved!', { icon: '✅' });
- }}
- className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-[var(--color-text-main)] rounded-xl text-[9px] font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-glow-emerald"
- >
- <Check size={11} /> Resolve
- </button>
- )}
- {!alert.seen && alert.status !== 'resolved' && (
- <button
- onClick={() => {
- if (alert.isLegacyCancel) acknowledgeCancellationAlert(alert.originalId);
- else markAlertSeen(alert.id);
- }}
- className="flex-1 py-1.5 bg-[var(--bg-glass)] hover:bg-gray-600 text-[var(--color-text-main)] rounded-xl text-[9px] font-extrabold uppercase tracking-wider transition-all flex items-center justify-center gap-1"
- >
- <Eye size={11} /> Seen
- </button>
- )}
- <button
- onClick={() => {
- if (alert.isLegacyCancel) acknowledgeCancellationAlert(alert.originalId);
- else removeAlert(alert.id);
- toast.success('Alert removed from board', { icon: '🗑️' });
- }}
- className="py-1.5 px-3 bg-red-950 hover:bg-red-900 text-red-400 hover:text-[var(--color-text-main)] rounded-xl text-[9px] font-bold border border-red-900 transition-all flex items-center gap-1"
- title="Remove Notification"
- >
- <X size={11} /> Remove
- </button>
- </div>
- </motion.div>
- ))}
- </AnimatePresence>
- </div>
- </div>
- )}
 
  {/* Balance Food Parcel Requests */}
  {balanceParcelRequests.length > 0 && (
