@@ -165,14 +165,14 @@ function ThemeSwitcher({ currentTheme, setTheme }) {
 
   return (
     <div className="relative">
-      <button 
-        onClick={() => setIsOpen(!isOpen)} 
+      <button
+        onClick={() => setIsOpen(!isOpen)}
         className="p-3 glass rounded-full shadow-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all flex items-center justify-center border-none"
         aria-label="Toggle theme menu"
       >
-        <CurrentIcon size={18} className="animate-spin-slow" style={{animationDuration: '3s'}} />
+        <CurrentIcon size={18} className="animate-spin-slow" style={{ animationDuration: '3s' }} />
       </button>
-      
+
       {isOpen && (
         <div className="absolute top-full right-0 mt-2 p-2 glass rounded-2xl shadow-xl flex flex-col gap-1 min-w-[140px] z-50 border-[var(--border-color)]">
           {themes.map(theme => (
@@ -207,14 +207,19 @@ function AppLayout() {
   }, [currentTheme]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSidebarOpen(false);
   }, [location.pathname]);
+
+  const toastedNotifications = React.useRef(new Set());
 
   useEffect(() => {
     if (notifications && notifications.length > 0) {
       const latest = notifications[0];
-      const ageMs = Date.now() - new Date(latest.timestamp).getTime();
-      if (ageMs < 4000) {
+      
+      if (!toastedNotifications.current.has(latest.id)) {
+        toastedNotifications.current.add(latest.id);
+        
         toast.custom((t) => (
           <div className={`glass-card flex items-start gap-3 p-4 rounded-2xl border border-[var(--color-primary)]/30 shadow-[0_10px_40px_rgba(var(--color-primary-rgb),0.15)] bg-[var(--bg-panel)]/95 backdrop-blur-xl max-w-sm w-full transition-all duration-300 transform ${t.visible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}>
             <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center shrink-0">
@@ -243,8 +248,8 @@ function AppLayout() {
 
   return (
     <div className="h-screen w-screen flex overflow-hidden">
-      <Toaster 
-        position="top-center" 
+      <Toaster
+        position="top-center"
         toastOptions={{
           duration: 4000,
           style: {
@@ -255,24 +260,24 @@ function AppLayout() {
             boxShadow: '0 10px 30px var(--shadow-color)',
             fontWeight: 'bold'
           }
-        }} 
+        }}
       />
-      
+
       {showSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
-      
+
       {showSidebar && isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)} 
+        <div
+          onClick={() => setIsSidebarOpen(false)}
           className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
         />
       )}
-      
+
       <div className="flex-1 h-full overflow-y-auto px-4 py-4 md:px-8 md:py-8 pb-24 lg:pb-8 relative flex flex-col gap-6 scroll-smooth">
         {showSidebar && (
           <header className="flex justify-between items-center pb-4 border-b border-[var(--border-color)] gap-4 sticky top-0 bg-[var(--bg-main)]/80 backdrop-blur-lg z-30 -mx-4 px-4 md:-mx-8 md:px-8 pt-2">
             <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setIsSidebarOpen(true)} 
+              <button
+                onClick={() => setIsSidebarOpen(true)}
                 className="lg:hidden p-2.5 glass rounded-xl shadow-sm text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all flex-shrink-0 border-none"
               >
                 <Menu size={20} />
@@ -299,37 +304,37 @@ function AppLayout() {
             </div>
           </header>
         )}
-        
+
         <main className="flex-1 min-h-0 w-full max-w-7xl mx-auto">
           <ErrorBoundary>
             <Suspense fallback={<LoadingSkeleton />}>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                
+
                 <Route path="/" element={
                   <ProtectedRoute allowedRoles={['waiter', 'manager', 'admin']}>
                     <WaiterPanel />
                   </ProtectedRoute>
                 } />
-                
+
                 <Route path="/billing" element={
                   <ProtectedRoute allowedRoles={['cashier', 'manager', 'admin']}>
                     <BillingDashboard />
                   </ProtectedRoute>
                 } />
-                
+
                 <Route path="/chef" element={
                   <ProtectedRoute allowedRoles={['chef', 'manager', 'admin']}>
                     <ChefDisplay />
                   </ProtectedRoute>
                 } />
-                
+
                 <Route path="/manager" element={
                   <ProtectedRoute allowedRoles={['manager', 'admin']}>
                     <ManagerDashboard />
                   </ProtectedRoute>
                 } />
-                
+
                 <Route path="/admin" element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminDashboard />
@@ -349,7 +354,7 @@ function AppLayout() {
           </ErrorBoundary>
         </main>
       </div>
-      
+
       {showSidebar && <BottomNav />}
     </div>
   );

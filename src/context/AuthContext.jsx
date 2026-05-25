@@ -7,6 +7,36 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchAndSetUserRole = async (authUser) => {
+    try {
+      // Query the custom users table for the role
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', authUser.id)
+        .single();
+        
+      if (data && !error) {
+        setUser({
+          uid: authUser.id,
+          email: authUser.email,
+          role: data.role
+        });
+      } else {
+        // Fallback if no role in table
+        setUser({
+          uid: authUser.id,
+          email: authUser.email,
+          role: 'waiter' // Default role
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching user role", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let subscription;
 
@@ -45,36 +75,6 @@ export function AuthProvider({ children }) {
       if (subscription) subscription.unsubscribe();
     };
   }, []);
-
-  const fetchAndSetUserRole = async (authUser) => {
-    try {
-      // Query the custom users table for the role
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', authUser.id)
-        .single();
-        
-      if (data && !error) {
-        setUser({
-          uid: authUser.id,
-          email: authUser.email,
-          role: data.role
-        });
-      } else {
-        // Fallback if no role in table
-        setUser({
-          uid: authUser.id,
-          email: authUser.email,
-          role: 'waiter' // Default role
-        });
-      }
-    } catch (err) {
-      console.error("Error fetching user role", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = async (email, password, mockRole = 'waiter') => {
     setLoading(true);

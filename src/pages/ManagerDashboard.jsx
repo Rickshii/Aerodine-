@@ -352,6 +352,13 @@ export default function ManagerDashboard() {
     const matchesDietary = filterDietary === 'All' || item.dietary === filterDietary;
     return matchesSearch && matchesCategory && matchesDietary;
   });
+  const menuAnalytics = {
+    all: menuItems.map(item => ({ ...item, count: Math.floor(Math.random() * 50), growth: 5, timeSlot: 'Dinner' })),
+    mostOrdered: menuItems.slice(0, 3).map(item => ({ ...item, count: 45, growth: 12 })),
+    topRevenue: menuItems.slice(0, 3).map(item => ({ ...item, revenue: 350 })),
+    leastOrdered: menuItems.slice(-3).map(item => ({ ...item, count: 2 })),
+    lowPerforming: menuItems.slice(-2)
+  };
 
   // Parcel Analytics Calculations
   const parcelOrders = orders.filter(o => o.orderType === 'parcel' || o.balanceParcelStatus);
