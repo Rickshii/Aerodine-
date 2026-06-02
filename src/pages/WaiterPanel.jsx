@@ -432,7 +432,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  )}
 
  <div className={`relative h-36 sm:h-56 w-full overflow-hidden ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
- <img src={food.image} alt={food.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+ <img src={food.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'} alt={food.name} onError={(e) => e.target.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
  
  {/* Savings Badge */}
  {savings > 0 && (
@@ -507,7 +507,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  onClick={() => !isOutOfStock && openDishDetails(food)}
  >
  <div className={`relative h-36 sm:h-56 w-full overflow-hidden transition-all duration-300 ${isOutOfStock ? 'filter blur-[2px] opacity-40' : ''}`}>
- <img src={food.image} alt={food.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+ <img src={food.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'} alt={food.name} onError={(e) => e.target.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
  <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-[var(--bg-main)]/80 backdrop-blur-md px-2 py-0.5 rounded-full text-[8px] sm:text-[10px] font-bold text-[var(--color-text-main)] uppercase tracking-wider max-w-[80px] sm:max-w-none truncate">
  {food.category}
  </div>
@@ -679,7 +679,7 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
 
  {/* Mobile Floating Cart Trigger */}
  {cart.length > 0 && (
- <div className="lg:hidden fixed bottom-4 left-4 right-4 z-40">
+ <div className="lg:hidden fixed bottom-20 left-4 right-4 z-[45]">
  <button
  onClick={() => setShowMobileCart(true)}
  className="w-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:from-orange-650 hover:to-amber-650 text-[var(--color-text-main)] font-bold py-3.5 px-5 rounded-2xl shadow-lg flex items-center justify-between transition-transform transform active:scale-95 shadow-rose-600/30"
@@ -1175,9 +1175,9 @@ const [cancellingOrder, setCancellingOrder] = useState(null);
  <XCircle size={24} />
  </button>
  </div>
- <img src={selectedDish.image} alt={selectedDish.name} className="w-full h-48 object-cover rounded-lg mb-4" />
+ <img src={selectedDish.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'} alt={selectedDish.name} onError={(e) => e.target.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'} className="w-full h-48 object-cover rounded-lg mb-4" />
  <p className="text-sm text-[var(--color-text-muted)] mb-3"><strong>Description:</strong> {selectedDish.description}</p>
- <p className="text-sm text-[var(--color-text-muted)] mb-2"><strong>Ingredients:</strong> {selectedDish.ingredients?.join(', ')}</p>
+ <p className="text-sm text-[var(--color-text-muted)] mb-2"><strong>Ingredients:</strong> {selectedDish.ingredients?.map(i => typeof i === 'string' ? i : (i.name || '')).filter(Boolean).join(', ')}</p>
  <p className="text-sm text-[var(--color-text-muted)] mb-2"><strong>Preparation Time:</strong> {selectedDish.prepTime || 'N/A'} mins</p>
  <p className="text-sm text-[var(--color-text-muted)] mb-2"><strong>Spice Level:</strong> {selectedDish.spiceLevel || 'Mild'}</p>
  <p className="text-sm text-[var(--color-text-muted)] mb-2"><strong>Category:</strong> {selectedDish.category}</p>

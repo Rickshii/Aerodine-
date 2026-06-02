@@ -65,38 +65,18 @@ export default function ChefDisplay() {
      
      newAlerts.forEach(alert => {
        toastedAlerts.current.add(alert.id);
-       
-       toast.custom((t) => (
-         <div
-           className={`glass-card flex items-start gap-3 p-4 rounded-2xl border border-red-500/30 shadow-[0_10px_40px_rgba(239,68,68,0.15)] bg-[var(--bg-panel)]/95 backdrop-blur-xl max-w-sm w-full transition-all duration-300 transform ${t.visible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}
-         >
-           <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-             <ShieldAlert size={16} className="text-red-500 animate-pulse" />
-           </div>
-           <div className="flex flex-col gap-2 w-full">
-             <div className="flex justify-between items-center w-full">
-               <span className="font-extrabold text-[10px] text-red-500 uppercase tracking-wider">{alert.type}</span>
-               <button onClick={() => toast.dismiss(t.id)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
-                 <X size={14} />
-               </button>
-             </div>
-             <span className="text-sm font-bold text-[var(--color-text-main)] leading-snug">{alert.message}</span>
-             <div className="flex gap-2 mt-1">
-               <button 
-                 onClick={() => {
-                   toast.dismiss(t.id);
-                   if (alert.isLegacyCancel) acknowledgeCancellationAlert(alert.originalId);
-                   else resolveAlert(alert.id, 'Chef');
-                   toast.success('Alert marked as resolved!', { icon: '✅' });
-                 }}
-                 className="flex-1 bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-glow-emerald"
-               >
-                 Resolve
-               </button>
-             </div>
-           </div>
-         </div>
-       ), { duration: 6000, id: `kds-alert-${alert.id}`, position: 'top-center' });
+       const toastId = `kds-alert-${alert.id}`;
+       toast.dismiss(toastId);
+       toast.error(`⚠️ ${alert.type}: ${alert.message}`, {
+         id: toastId,
+         duration: 3000
+       });
+
+       if (alert.isLegacyCancel) {
+         acknowledgeCancellationAlert(alert.originalId);
+       } else {
+         resolveAlert(alert.id, 'Chef');
+       }
      });
    }
  }

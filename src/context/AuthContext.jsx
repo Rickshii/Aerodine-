@@ -85,7 +85,24 @@ export function AuthProvider({ children }) {
           password
         });
         
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            // Attempt to sign up the user automatically if they don't exist
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password
+            });
+            if (signUpError) throw signUpError;
+            
+            // Insert user role into the users table
+            if (signUpData?.user) {
+              await supabase.from('users').insert([{ id: signUpData.user.id, role: mockRole, email }]);
+              await fetchAndSetUserRole(signUpData.user);
+              return signUpData;
+            }
+          }
+          throw error;
+        }
         
         await fetchAndSetUserRole(data.user);
         return data;

@@ -278,24 +278,18 @@ button, a, [role="button"], input, select, textarea {
 
 /* ===== MOBILE-FIRST TABLE FIXES ===== */
 @media (max-width: 768px) {
-  table {
-    display: block;
-    overflow-x: auto;
+  .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
   }
   
-  thead, tbody, tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
+  table {
+    min-width: 600px; /* Force horizontal scroll instead of squishing */
   }
   
-  /* Make table cells wrap on very small screens */
   td, th {
     padding-left: 0.75rem !important;
     padding-right: 0.75rem !important;
-    font-size: 0.7rem !important;
+    font-size: 0.75rem !important;
   }
 }
 

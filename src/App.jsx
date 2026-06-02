@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { StoreProvider, useStore } from './context/StoreContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSkeleton from './components/LoadingSkeleton';
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster, useToasterStore } from 'react-hot-toast';
 
 // Lazy Load Dashboards for optimized bundle sizes
 const Login = lazy(() => import('./pages/Login'));
@@ -60,7 +60,7 @@ function Sidebar({ isOpen, onClose }) {
   const filteredItems = navItems.filter(item => item.roles.includes(user?.role));
 
   return (
-    <aside className={`fixed inset-y-0 left-0 lg:relative z-50 w-72 h-full glass rounded-none border-t-0 border-b-0 border-l-0 flex flex-col p-6 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`} aria-label="Main Navigation">
+    <aside className={`fixed inset-y-0 left-0 lg:relative z-50 w-72 h-screen max-h-screen glass rounded-none border-t-0 border-b-0 border-l-0 flex flex-col p-6 overflow-y-auto transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`} aria-label="Main Navigation">
       <div className="flex items-center justify-between gap-3 mb-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg">
@@ -78,7 +78,7 @@ function Sidebar({ isOpen, onClose }) {
         </button>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
         {filteredItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -201,6 +201,29 @@ function AppLayout() {
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem('app-theme') || 'light');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const { toasts } = useToasterStore();
+
+  useEffect(() => {
+    // 1. Limit to 1 toast at a time: dismiss older ones
+    const visibleToasts = toasts.filter(t => t.visible);
+    if (visibleToasts.length > 1) {
+      visibleToasts.slice(0, -1).forEach(t => toast.dismiss(t.id));
+    }
+
+    // 2. Prevent duplicate notifications: if a new toast has the same message as a recently shown toast, dismiss it
+    const seenMessages = new Set();
+    toasts.forEach(t => {
+      if (t.visible) {
+        const messageString = typeof t.message === 'string' ? t.message : '';
+        if (messageString && seenMessages.has(messageString)) {
+          toast.dismiss(t.id);
+        } else if (messageString) {
+          seenMessages.add(messageString);
+        }
+      }
+    });
+  }, [toasts]);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', currentTheme);
     localStorage.setItem('app-theme', currentTheme);
@@ -216,29 +239,14 @@ function AppLayout() {
   useEffect(() => {
     if (notifications && notifications.length > 0) {
       const latest = notifications[0];
-      
       if (!toastedNotifications.current.has(latest.id)) {
         toastedNotifications.current.add(latest.id);
-        
-        toast.custom((t) => (
-          <div className={`glass-card flex items-start gap-3 p-4 rounded-2xl border border-[var(--color-primary)]/30 shadow-[0_10px_40px_rgba(var(--color-primary-rgb),0.15)] bg-[var(--bg-panel)]/95 backdrop-blur-xl max-w-sm w-full transition-all duration-300 transform ${t.visible ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-4 opacity-0 scale-95'}`}>
-            <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center shrink-0">
-              <Bell size={16} className="text-[var(--color-primary)] animate-pulse" />
-            </div>
-            <div className="flex flex-col gap-1 w-full">
-              <div className="flex justify-between items-center w-full">
-                <span className="font-extrabold text-[10px] text-[var(--color-primary)] uppercase tracking-wider">📢 KDS Broadcast</span>
-                <button onClick={() => toast.dismiss(t.id)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)]">
-                  <X size={14} />
-                </button>
-              </div>
-              <span className="text-sm font-bold text-[var(--color-text-main)] leading-snug">{latest.message}</span>
-            </div>
-          </div>
-        ), {
+        // Dismiss any existing toasts first so only 1 is ever visible
+        toast.dismiss();
+        toast(latest.message, {
           id: latest.id,
-          duration: 4000,
-          position: 'top-center'
+          duration: 3000,
+          icon: '📢'
         });
       }
     }
@@ -250,15 +258,19 @@ function AppLayout() {
     <div className="h-screen w-screen flex overflow-hidden">
       <Toaster
         position="top-center"
+        containerStyle={{ top: 16 }}
         toastOptions={{
-          duration: 4000,
+          duration: 3000,
+          max: 1,
           style: {
             background: 'var(--bg-panel)',
             color: 'var(--color-text-main)',
             borderRadius: '16px',
             border: '1px solid var(--border-color)',
             boxShadow: '0 10px 30px var(--shadow-color)',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            fontSize: '14px',
+            maxWidth: '360px'
           }
         }}
       />
@@ -349,6 +361,9 @@ function AppLayout() {
                     <Link to="/login" className="btn-premium mt-4">Return to Login</Link>
                   </div>
                 } />
+
+                {/* Catch-all route to prevent 404 on refresh */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>
