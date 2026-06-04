@@ -226,6 +226,72 @@ export default function BillingDashboard() {
  return matchesSearch && matchesMethod && matchesDate;
  });
 
+ const renderCheckoutActions = (isMobile = false) => {
+  if (!selectedOrder) return null;
+  return (
+   <div className={`pt-4 border-t border-[var(--border-color)] space-y-4 ${isMobile ? 'pb-24' : 'shrink-0 pb-4 lg:pb-0'}`}>
+    <div>
+     <label className="text-xs font-bold text-slate-450 block mb-2 uppercase tracking-wider">Payment Method</label>
+     <div className="grid grid-cols-3 gap-3">
+      <button
+       onClick={() => { setPaymentMethod('cash'); setShowQR(false); }}
+       className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 justify-center ${paymentMethod === 'cash' && !showQR ? 'bg-[var(--color-primary)]/10 text-orange-555 border-[var(--color-primary)]' : 'bg-[var(--bg-panel)] border-[var(--border-color)] text-[var(--color-text-muted)]'}`}
+      >
+       <Banknote size={16} />
+       Cash
+      </button>
+      <button
+       onClick={() => { setPaymentMethod('card'); setShowQR(false); }}
+       className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 justify-center ${paymentMethod === 'card' && !showQR ? 'bg-[var(--color-primary)]/10 text-orange-555 border-[var(--color-primary)]' : 'bg-[var(--bg-panel)] border-[var(--border-color)] text-[var(--color-text-muted)]'}`}
+      >
+       <CreditCard size={16} />
+       Card
+      </button>
+      <button
+       onClick={() => { setShowQR(true); setPaymentMethod('upi'); }}
+       className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 justify-center ${showQR ? 'bg-[var(--color-primary)]/10 text-orange-555 border-[var(--color-primary)] shadow-glow-primary' : 'bg-[var(--bg-panel)] border-[var(--border-color)] text-[var(--color-text-muted)]'}`}
+      >
+       <QrCode size={16} />
+       UPI Scan
+      </button>
+     </div>
+    </div>
+
+    {showQR && (
+     <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 border border-[var(--border-color)] shadow-lg"
+     >
+      <img
+       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=aerodine@upi&am=${total.toFixed(2)}&tn=Table${selectedOrder.table}`}
+       alt="UPI Payment QR Code"
+       className="w-32 h-32 rounded-lg"
+      />
+      <span className="text-[10px] text-[var(--color-text-muted)] font-mono font-bold">Scan to Pay: ₹{total.toFixed(2)}</span>
+     </motion.div>
+    )}
+
+    <div className="flex gap-3">
+     <button
+      onClick={handleTriggerCancel}
+      className="flex-1 py-3.5 border border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-[var(--color-text-main)] text-red-500 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
+     >
+      <XCircle size={14} />
+      Cancel Bill
+     </button>
+     <button
+      onClick={handleProcessPayment}
+      className="flex-[2] btn-premium bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-[var(--color-text-main)] rounded-2xl py-3.5 flex items-center justify-center gap-2 shadow-glow-primary font-bold"
+     >
+      <Printer size={16} />
+      Settle & Print
+     </button>
+    </div>
+   </div>
+  );
+ };
+
  return (
  <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-8 relative overflow-hidden text-[var(--color-text-main)] ">
  <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 pr-0 lg:pr-2">
@@ -523,7 +589,7 @@ export default function BillingDashboard() {
  </div>
 
  {/* POS invoice & QR Code System panel */}
- <div className={`glass flex flex-col p-4 lg:p-6 border border-[var(--border-color)] transition-all z-40 ${selectedOrder ? 'fixed inset-0 w-full h-[100dvh] lg:static lg:w-96 lg:h-full shrink-0 glass-card/95 /95 lg:bg-transparent lg: backdrop-blur-xl lg:backdrop-blur-md overflow-hidden' : 'hidden lg:flex lg:w-96 h-full shrink-0'}`}>
+ <div className={`glass flex flex-col transition-all border border-[var(--border-color)] ${selectedOrder ? 'fixed inset-0 w-full h-[100dvh] bg-[var(--bg-panel)]/98 backdrop-blur-xl z-50 p-4 pt-10 lg:static lg:w-96 lg:h-full lg:bg-transparent lg:backdrop-blur-none lg:p-6 lg:border-y-0 lg:border-r-0 lg:border-l shrink-0 overflow-hidden' : 'hidden lg:flex lg:w-96 h-full shrink-0'}`}>
  <div className="flex justify-between items-center pb-4 border-b border-[var(--border-color)] shrink-0">
  <h2 className="font-extrabold text-lg text-gray-100 uppercase tracking-wider">POS Checkout</h2>
  {selectedOrder && (
@@ -684,6 +750,10 @@ export default function BillingDashboard() {
  ))}
  </div>
  </div>
+			{/* Mobile/Tablet actions inside the scroll area */}
+			<div className="lg:hidden">
+				{renderCheckoutActions(true)}
+			</div>
  </div>
  ) : (
  <div className="h-full flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-3 py-16">
@@ -694,71 +764,13 @@ export default function BillingDashboard() {
  </div>
 
  {selectedOrder && (
- <div className="pt-4 border-t border-[var(--border-color)] space-y-4 shrink-0 pb-4 lg:pb-0">
- <div>
- <label className="text-xs font-bold text-slate-455 block mb-2">Payment Method</label>
- <div className="grid grid-cols-3 gap-3">
- <button 
- onClick={() => { setPaymentMethod('cash'); setShowQR(false); }}
- className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 justify-center ${paymentMethod === 'cash' && !showQR ? 'bg-[var(--color-primary)]/10 text-orange-555 border-[var(--color-primary)]' : 'bg-[var(--bg-panel)] border-[var(--border-color)] text-[var(--color-text-muted)]'}`}
- >
- <Banknote size={16} />
- Cash
- </button>
- <button 
- onClick={() => { setPaymentMethod('card'); setShowQR(false); }}
- className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 justify-center ${paymentMethod === 'card' && !showQR ? 'bg-[var(--color-primary)]/10 text-orange-555 border-[var(--color-primary)]' : 'bg-[var(--bg-panel)] border-[var(--border-color)] text-[var(--color-text-muted)]'}`}
- >
- <CreditCard size={16} />
- Card
- </button>
- <button 
- onClick={() => { setShowQR(true); setPaymentMethod('upi'); }}
- className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 justify-center ${showQR ? 'bg-[var(--color-primary)]/10 text-orange-555 border-[var(--color-primary)] shadow-glow-primary' : 'bg-[var(--bg-panel)] border-[var(--border-color)] text-[var(--color-text-muted)]'}`}
- >
- <QrCode size={16} />
- UPI Scan
- </button>
- </div>
- </div>
+				<div className="hidden lg:block pt-4 border-t border-[var(--border-color)] space-y-4 shrink-0 pb-4 lg:pb-0">
+					{renderCheckoutActions(false)}
+				</div>
+			)}
+  </div>
 
- {showQR && (
- <motion.div 
- initial={{ opacity: 0, scale: 0.9 }}
- animate={{ opacity: 1, scale: 1 }}
- className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 border border-[var(--border-color)] shadow-lg"
- >
- <img 
- src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=aerodine@upi&am=${total.toFixed(2)}&tn=Table${selectedOrder.table}`} 
- alt="UPI Payment QR Code"
- className="w-36 h-36"
- />
- <span className="text-[10px] text-[var(--color-text-muted)] font-mono font-bold">Scan to Pay: ${total.toFixed(2)}</span>
- </motion.div>
- )}
-
- {/* Split Action Container for Settle vs Unpaid Cancellation */}
- <div className="flex gap-3">
- <button 
- onClick={handleTriggerCancel}
- className="flex-1 py-3.5 border border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-[var(--color-text-main)] text-red-500 rounded-2xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all"
- >
- <XCircle size={14} />
- Cancel Bill
- </button>
- <button 
- onClick={handleProcessPayment}
- className="flex-[2] btn-premium bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-[var(--color-text-main)] rounded-2xl py-3.5 flex items-center justify-center gap-2 shadow-glow-primary font-bold"
- >
- <Printer size={16} />
- Settle & Print
- </button>
- </div>
- </div>
- )}
- </div>
-
- {/* DYNAMIC HISTORIC INVOICE MODAL */}
+  {/* DYNAMIC HISTORIC INVOICE MODAL */}
  <AnimatePresence>
  {viewingPastInvoice && (
  <div className="fixed inset-0 bg-[var(--bg-main)]/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
